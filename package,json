@@ -1,0 +1,13 @@
+{
+  "name": "apula-fire-detection",
+  "version": "1.0.0",
+  "description": "APULA Fire Detection with Arduino",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.14.2"
+  }
+}
