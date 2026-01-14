@@ -420,6 +420,59 @@
             color: var(--aluminum);
         }
 
+        /* === CAMERA CONTROL PANEL === */
+        .camera-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--spacing-base);
+            margin-top: var(--spacing-xwide);
+            padding: var(--spacing-base);
+            background: rgba(42, 42, 53, 0.6);
+            border-radius: var(--border-radius-critical);
+            border: 1px solid rgba(255, 85, 0, 0.2);
+        }
+
+        .camera-option-btn {
+            background: linear-gradient(135deg, 
+                rgba(42, 42, 53, 0.9),
+                rgba(58, 42, 53, 0.9));
+            border: 2px solid rgba(255, 85, 0, 0.3);
+            border-radius: var(--border-radius-critical);
+            padding: var(--spacing-base);
+            color: var(--aluminum);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .camera-option-btn:hover {
+            border-color: var(--fire-orange);
+            background: linear-gradient(135deg, 
+                rgba(58, 42, 53, 0.9),
+                rgba(74, 42, 53, 0.9));
+            transform: translateY(-2px);
+        }
+
+        .camera-option-btn.active {
+            border-color: var(--fire-orange);
+            background: linear-gradient(135deg, 
+                rgba(255, 85, 0, 0.2),
+                rgba(255, 34, 0, 0.2));
+        }
+
+        .camera-option-btn i {
+            font-size: 1.5rem;
+            color: var(--fire-orange);
+        }
+
         /* === SURVEILLANCE PANEL === */
         .surveillance-panel {
             grid-column: span 2;
@@ -481,10 +534,41 @@
             letter-spacing: 1px;
             text-transform: uppercase;
             box-shadow: var(--glow-critical);
+            z-index: 10;
         }
 
-        /* CONTROL PANEL */
-        .control-panel {
+        .recording-indicator {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: var(--emergency-red);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: var(--glow-critical);
+            z-index: 10;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            animation: pulseCritical 1s infinite;
+        }
+
+        .recording-indicator i {
+            animation: recordingPulse 1s infinite;
+        }
+
+        @keyframes recordingPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* CAMERA CONTROLS */
+        .camera-controls {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: var(--spacing-base);
@@ -527,10 +611,11 @@
             transform: translateY(0) scale(0.98);
         }
 
-        .control-button.emergency {
+        .control-button.recording {
             background: linear-gradient(135deg, 
                 var(--emergency-red),
                 #CC0000);
+            animation: pulseCritical 1s infinite;
         }
 
         .control-button.water {
@@ -544,6 +629,240 @@
                 #00C8FF,
                 var(--water-blue));
             box-shadow: 0 8px 25px rgba(0, 168, 255, 0.5);
+        }
+
+        .control-button.success {
+            background: linear-gradient(135deg, 
+                var(--alert-normal),
+                #00CC88);
+        }
+
+        .control-button.success:hover {
+            background: linear-gradient(135deg, 
+                #00FF88,
+                var(--alert-normal));
+            box-shadow: 0 8px 25px rgba(0, 255, 136, 0.5);
+        }
+
+        .control-button.secondary {
+            background: linear-gradient(135deg, 
+                var(--water-blue),
+                var(--command-blue));
+        }
+
+        .control-button.disabled {
+            background: linear-gradient(135deg, 
+                #666, 
+                #888);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .control-button.disabled:hover {
+            transform: none;
+            box-shadow: 0 4px 15px rgba(255, 34, 0, 0.3);
+        }
+
+        /* === GALLERY PANEL === */
+        .gallery-panel {
+            background: var(--card-gradient);
+            border-radius: var(--border-radius-tactical);
+            padding: var(--spacing-xwide);
+            border: var(--border-tactical);
+            box-shadow: var(--shadow-deep);
+            margin-top: var(--spacing-xwide);
+        }
+
+        .gallery-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-xwide);
+            padding-bottom: var(--spacing-base);
+            border-bottom: 1px solid rgba(255, 85, 0, 0.3);
+        }
+
+        .gallery-tabs {
+            display: flex;
+            gap: var(--spacing-base);
+            margin-bottom: var(--spacing-xwide);
+        }
+
+        .gallery-tab {
+            background: rgba(42, 42, 53, 0.8);
+            border: 2px solid rgba(255, 85, 0, 0.3);
+            border-radius: var(--border-radius-critical);
+            padding: var(--spacing-base) var(--spacing-wide);
+            color: var(--aluminum);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .gallery-tab:hover {
+            border-color: var(--fire-orange);
+            background: rgba(58, 42, 53, 0.9);
+        }
+
+        .gallery-tab.active {
+            border-color: var(--fire-orange);
+            background: linear-gradient(135deg, 
+                rgba(255, 85, 0, 0.2),
+                rgba(255, 34, 0, 0.2));
+        }
+
+        .gallery-container {
+            max-height: 400px;
+            overflow-y: auto;
+            background: rgba(17, 17, 24, 0.9);
+            border-radius: var(--border-radius-critical);
+            padding: var(--spacing-base);
+            border: 1px solid rgba(255, 85, 0, 0.2);
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: var(--spacing-base);
+        }
+
+        .gallery-item {
+            background: rgba(42, 42, 53, 0.8);
+            border-radius: var(--border-radius-critical);
+            overflow: hidden;
+            border: 2px solid rgba(255, 85, 0, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            aspect-ratio: 16/9;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            border-color: var(--fire-orange);
+            box-shadow: 0 10px 20px rgba(255, 85, 0, 0.3);
+        }
+
+        .gallery-item img,
+        .gallery-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gallery-item-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            padding: var(--spacing-tight);
+            font-size: 0.75rem;
+            color: var(--aluminum);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .gallery-item-type {
+            background: var(--fire-orange);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .gallery-item-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .gallery-item-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--aluminum);
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .gallery-item-btn:hover {
+            background: rgba(255, 85, 0, 0.8);
+            color: white;
+        }
+
+        .empty-gallery {
+            text-align: center;
+            padding: var(--spacing-ultra);
+            color: var(--aluminum);
+            opacity: 0.5;
+        }
+
+        .empty-gallery i {
+            font-size: 3rem;
+            margin-bottom: var(--spacing-base);
+            color: var(--fire-orange);
+        }
+
+        /* === SENSOR DISPLAY === */
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-base);
+            margin-top: var(--spacing-xwide);
+            background: rgba(255, 85, 0, 0.05);
+            padding: var(--spacing-base);
+            border-radius: var(--border-radius-critical);
+            border: 1px solid rgba(255, 85, 0, 0.1);
+        }
+
+        .sensor-item {
+            text-align: center;
+            padding: var(--spacing-base);
+            background: rgba(42, 42, 53, 0.8);
+            border-radius: var(--border-radius-critical);
+            border: 1px solid rgba(255, 85, 0, 0.2);
+        }
+
+        .sensor-label {
+            font-size: 0.85rem;
+            color: var(--aluminum);
+            opacity: 0.8;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sensor-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--aluminum);
+        }
+
+        .sensor-value.critical {
+            color: var(--emergency-red);
+            text-shadow: 0 0 10px rgba(255, 34, 0, 0.5);
+            animation: pulseCritical 1s infinite;
+        }
+
+        .sensor-value.warning {
+            color: var(--hazard-yellow);
+        }
+
+        .sensor-value.safe {
+            color: var(--alert-normal);
         }
 
         /* === SYSTEMS PANEL === */
@@ -617,6 +936,84 @@
 
         .metric-trend.down {
             color: var(--emergency-red);
+        }
+
+        /* === LOG PANEL === */
+        .log-panel {
+            background: var(--card-gradient);
+            border-radius: var(--border-radius-tactical);
+            padding: var(--spacing-xwide);
+            border: var(--border-tactical);
+            box-shadow: var(--shadow-deep);
+            margin-top: var(--spacing-xwide);
+        }
+
+        .log-container {
+            max-height: 300px;
+            overflow-y: auto;
+            background: rgba(17, 17, 24, 0.9);
+            border-radius: var(--border-radius-critical);
+            padding: var(--spacing-base);
+            border: 1px solid rgba(255, 85, 0, 0.2);
+        }
+
+        .log-entry {
+            padding: var(--spacing-base);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-base);
+            transition: background 0.2s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .log-entry:hover {
+            background: rgba(255, 85, 0, 0.05);
+        }
+
+        .log-entry.alert {
+            border-left-color: var(--emergency-red);
+            color: var(--emergency-red);
+        }
+
+        .log-entry.water {
+            border-left-color: var(--water-blue);
+            color: var(--water-blue);
+        }
+
+        .log-entry.safe {
+            border-left-color: var(--alert-normal);
+            color: var(--alert-normal);
+        }
+
+        .log-entry.info {
+            border-left-color: var(--hazard-yellow);
+            color: var(--hazard-yellow);
+        }
+
+        .log-entry.arduino {
+            border-left-color: var(--thermal-purple);
+            color: var(--thermal-purple);
+        }
+
+        .log-entry.media {
+            border-left-color: var(--fire-orange);
+            color: var(--fire-orange);
+        }
+
+        .log-time {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            color: var(--aluminum);
+            opacity: 0.8;
+            min-width: 70px;
+            flex-shrink: 0;
+        }
+
+        .log-message {
+            flex: 1;
+            word-break: break-word;
+            font-size: 0.9rem;
         }
 
         /* === EMERGENCY ALERT MODAL === */
@@ -813,6 +1210,11 @@
             background: rgba(10, 58, 38, 0.95);
         }
 
+        .notification.media {
+            border-left-color: var(--fire-orange);
+            background: rgba(58, 42, 10, 0.95);
+        }
+
         .notification-title {
             font-family: 'Orbitron', sans-serif;
             font-weight: 700;
@@ -828,6 +1230,98 @@
             color: var(--aluminum);
             font-size: 0.9rem;
             line-height: 1.4;
+        }
+
+        /* === MEDIA VIEWER MODAL === */
+        .media-viewer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 15, 0.98);
+            backdrop-filter: blur(20px);
+            z-index: 10001;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: alertFadeIn 0.3s ease;
+        }
+
+        .media-container {
+            background: var(--card-gradient);
+            border: 3px solid var(--fire-orange);
+            border-radius: var(--border-radius-tactical);
+            max-width: 90%;
+            max-height: 90vh;
+            overflow: hidden;
+            position: relative;
+            box-shadow: var(--glow-critical), var(--shadow-deep);
+        }
+
+        .media-content {
+            max-width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+        }
+
+        .media-info {
+            background: rgba(0, 0, 0, 0.8);
+            padding: var(--spacing-wide);
+            color: var(--aluminum);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .media-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--emergency-red);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            box-shadow: var(--glow-critical);
+        }
+
+        .media-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: var(--spacing-base);
+            z-index: 10;
+        }
+
+        .media-control-btn {
+            background: rgba(255, 85, 0, 0.9);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .media-control-btn:hover {
+            background: var(--emergency-red);
+            transform: scale(1.1);
         }
 
         /* === RESPONSIVE DESIGN === */
@@ -860,12 +1354,20 @@
                 height: 300px;
             }
             
-            .control-panel {
+            .sensor-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .camera-controls {
                 grid-template-columns: repeat(2, 1fr);
             }
             
             .system-metrics {
                 grid-template-columns: 1fr;
+            }
+            
+            .gallery-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
@@ -879,7 +1381,7 @@
                 grid-template-columns: 1fr;
             }
             
-            .control-panel {
+            .camera-controls {
                 grid-template-columns: 1fr;
             }
             
@@ -890,6 +1392,10 @@
             
             .camera-feed {
                 height: 250px;
+            }
+            
+            .gallery-grid {
+                grid-template-columns: 1fr;
             }
             
             .alert-container {
@@ -912,6 +1418,60 @@
         .mb-3 { margin-bottom: var(--spacing-wide); }
         .mb-4 { margin-bottom: var(--spacing-xwide); }
 
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 15, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid transparent;
+            border-top: 4px solid var(--fire-orange);
+            border-right: 4px solid var(--water-blue);
+            border-bottom: 4px solid var(--alert-normal);
+            border-left: 4px solid var(--emergency-red);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Arduino Fire Alert Overlay */
+        .arduino-fire-alert {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 34, 0, 0.9);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 1.2rem;
+            z-index: 100;
+            animation: alertPulse 1s infinite;
+            text-align: center;
+            border: 3px solid white;
+            box-shadow: 0 0 30px rgba(255, 34, 0, 0.8);
+            display: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
         /* Accessibility */
         @media (prefers-reduced-motion: reduce) {
             * {
@@ -933,6 +1493,11 @@
     </style>
 </head>
 <body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
     <!-- Emergency Alert Modal -->
     <div id="emergencyAlert" class="emergency-alert">
         <div class="alert-container">
@@ -945,7 +1510,7 @@
                     <div class="info-item">
                         <i class="fas fa-map-marker-alt info-icon"></i>
                         <span class="info-label">Location:</span>
-                        <span class="info-value" id="alertLocation">Camera 1 - Main Area</span>
+                        <span class="info-value" id="alertLocation">Arduino Sensors</span>
                     </div>
                     <div class="info-item">
                         <i class="fas fa-fire info-icon"></i>
@@ -965,11 +1530,33 @@
                 </div>
             </div>
             <div class="alert-actions">
-                <button class="alert-button" onclick="acknowledgeAlert()">
+                <button class="alert-button" onclick="app.acknowledgeAlert()">
                     <i class="fas fa-bell-slash"></i>
                     ACKNOWLEDGE & STOP ALARM
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Media Viewer Modal -->
+    <div id="mediaViewer" class="media-viewer">
+        <div class="media-container">
+            <button class="media-close" onclick="app.closeMediaViewer()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="mediaContent"></div>
+            <div class="media-controls" id="videoControls" style="display: none;">
+                <button class="media-control-btn" onclick="app.toggleVideoPlayback()">
+                    <i class="fas fa-play" id="videoPlayBtn"></i>
+                </button>
+                <button class="media-control-btn" onclick="app.toggleVideoMute()">
+                    <i class="fas fa-volume-up" id="videoMuteBtn"></i>
+                </button>
+                <button class="media-control-btn" onclick="app.downloadCurrentMedia()">
+                    <i class="fas fa-download"></i>
+                </button>
+            </div>
+            <div class="media-info" id="mediaInfo"></div>
         </div>
     </div>
 
@@ -986,7 +1573,7 @@
             <div class="status-indicator">
                 <div class="status-item">
                     <span class="status-dot critical" id="systemStatusDot"></span>
-                    <span class="status-text" id="systemStatusText">SYSTEM: CRITICAL</span>
+                    <span class="status-text" id="systemStatusText">SYSTEM: READY</span>
                 </div>
                 <div class="status-item">
                     <span class="status-dot warning" id="arduinoStatusDot"></span>
@@ -1025,15 +1612,70 @@
                 
                 <div class="status-tile" id="arduinoTile">
                     <i class="fas fa-microchip tile-icon"></i>
-                    <div class="tile-title" id="arduinoTileText">ARDUINO</div>
+                    <div class="tile-title" id="arduinoTileText">ARDUINO OFFLINE</div>
                     <div class="tile-subtitle">Click to Connect</div>
                 </div>
                 
                 <div class="status-tile" id="cameraTile">
                     <i class="fas fa-video tile-icon"></i>
-                    <div class="tile-title" id="cameraTileText">CAMERA</div>
-                    <div class="tile-subtitle">Single Feed</div>
+                    <div class="tile-title" id="cameraTileText">CAMERA OFFLINE</div>
+                    <div class="tile-subtitle">Click to Connect</div>
                 </div>
+            </div>
+
+            <!-- Camera Options -->
+            <div class="camera-options">
+                <button class="camera-option-btn" onclick="app.selectCamera('webcam')" id="webcamBtn">
+                    <i class="fas fa-camera"></i>
+                    Webcam
+                </button>
+                <button class="camera-option-btn" onclick="app.selectCamera('rtsp')" id="rtspBtn">
+                    <i class="fas fa-satellite-dish"></i>
+                    RTSP
+                </button>
+                <button class="camera-option-btn" onclick="app.selectCamera('bluetooth')" id="bluetoothBtn">
+                    <i class="fas fa-bluetooth"></i>
+                    Bluetooth
+                </button>
+                <button class="camera-option-btn" onclick="app.selectCamera('ip')" id="ipBtn">
+                    <i class="fas fa-wifi"></i>
+                    IP Camera
+                </button>
+            </div>
+
+            <!-- RTSP URL Input (Hidden by default) -->
+            <div id="rtspInput" style="display: none; margin-top: var(--spacing-base);">
+                <input type="text" id="rtspUrl" placeholder="rtsp://username:password@192.168.1.100:554/stream" 
+                       style="width: 100%; padding: var(--spacing-base); border-radius: var(--border-radius-critical); 
+                              background: rgba(42, 42, 53, 0.8); border: 2px solid rgba(255, 85, 0, 0.3); 
+                              color: var(--aluminum); font-family: 'Montserrat', sans-serif;">
+                <button class="control-button" onclick="app.connectRTSP()" style="width: 100%; margin-top: var(--spacing-base);">
+                    <i class="fas fa-plug"></i>
+                    Connect RTSP Stream
+                </button>
+            </div>
+
+            <!-- Sensor Display -->
+            <div class="sensor-grid" id="sensorDisplay" style="display: none;">
+                <div class="sensor-item">
+                    <div class="sensor-label">Sensor 1 (D2)</div>
+                    <div class="sensor-value safe" id="sensor1Value">✓ OK</div>
+                </div>
+                <div class="sensor-item">
+                    <div class="sensor-label">Sensor 2 (D3)</div>
+                    <div class="sensor-value safe" id="sensor2Value">✓ OK</div>
+                </div>
+                <div class="sensor-item">
+                    <div class="sensor-label">Sensor 3 (D4)</div>
+                    <div class="sensor-value safe" id="sensor3Value">✓ OK</div>
+                </div>
+            </div>
+
+            <!-- Arduino Fire Alert -->
+            <div id="arduinoFireAlert" class="arduino-fire-alert">
+                <i class="fas fa-fire" style="margin-right: 10px;"></i>
+                ARDUINO FIRE ALERT!
+                <div style="font-size: 0.9rem; margin-top: 5px;" id="arduinoAlertLocation"></div>
             </div>
         </div>
 
@@ -1044,35 +1686,78 @@
                     <i class="fas fa-eye"></i>
                 </div>
                 <h2 class="panel-title">Live Surveillance</h2>
+                <div class="recording-indicator" id="recordingIndicator">
+                    <i class="fas fa-circle"></i>
+                    RECORDING
+                </div>
             </div>
             <div class="camera-feed">
-                <div class="camera-label">CAMERA 1 - MAIN AREA</div>
-                <div class="camera-overlay">
+                <div class="camera-label" id="cameraFeedLabel">CAMERA FEED OFFLINE</div>
+                <div class="camera-overlay" id="cameraOverlay">
                     <i class="fas fa-camera" style="font-size: 3rem; color: var(--steel-grey); margin-bottom: 20px;"></i>
                     <p style="color: var(--steel-grey); margin-bottom: 20px;">SURVEILLANCE FEED OFFLINE</p>
-                    <button class="control-button" onclick="connectCamera()">
+                    <button class="control-button" onclick="app.connectCamera()" id="connectCameraBtn">
                         <i class="fas fa-plug"></i>
                         ACTIVATE CAMERA
                     </button>
                 </div>
+                <video id="cameraFeed" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover; display: none;"></video>
             </div>
-            <div class="control-panel">
-                <button class="control-button" onclick="startRecording()">
+            <div class="camera-controls">
+                <button class="control-button" onclick="app.startRecording()" id="recordBtn">
                     <i class="fas fa-record-vinyl"></i>
-                    RECORD
+                    Start Recording
                 </button>
-                <button class="control-button" onclick="captureSnapshot()">
+                <button class="control-button emergency disabled" onclick="app.stopRecording()" id="stopBtn">
+                    <i class="fas fa-stop"></i>
+                    Stop Recording
+                </button>
+                <button class="control-button secondary" onclick="app.captureSnapshot()" id="snapshotBtn">
                     <i class="fas fa-camera"></i>
-                    SNAPSHOT
+                    Take Snapshot
                 </button>
-                <button class="control-button water" onclick="activateWater()">
+                <button class="control-button water" onclick="app.activateWater()" id="activateWaterBtn">
                     <i class="fas fa-tint"></i>
-                    WATER ON
+                    Activate Water
                 </button>
-                <button class="control-button emergency" onclick="emergencyStop()">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    EMERGENCY
+            </div>
+        </div>
+
+        <!-- Gallery Panel -->
+        <div class="gallery-panel">
+            <div class="panel-header">
+                <div class="panel-icon">
+                    <i class="fas fa-images"></i>
+                </div>
+                <h2 class="panel-title">Media Gallery</h2>
+                <button class="control-button" onclick="app.clearGallery()" style="padding: 8px 16px; font-size: 0.8rem;">
+                    <i class="fas fa-trash"></i>
+                    Clear All
                 </button>
+            </div>
+            <div class="gallery-tabs">
+                <button class="gallery-tab active" onclick="app.showGalleryTab('all')" id="tabAll">
+                    <i class="fas fa-th"></i>
+                    All Media
+                </button>
+                <button class="gallery-tab" onclick="app.showGalleryTab('photos')" id="tabPhotos">
+                    <i class="fas fa-camera"></i>
+                    Photos
+                </button>
+                <button class="gallery-tab" onclick="app.showGalleryTab('videos')" id="tabVideos">
+                    <i class="fas fa-video"></i>
+                    Videos
+                </button>
+            </div>
+            <div class="gallery-container" id="galleryContainer">
+                <div class="gallery-grid" id="galleryGrid">
+                    <!-- Gallery items will be dynamically added here -->
+                </div>
+                <div class="empty-gallery" id="emptyGallery">
+                    <i class="fas fa-images"></i>
+                    <h3>No Media Available</h3>
+                    <p>Start recording or take snapshots to populate the gallery</p>
+                </div>
             </div>
         </div>
 
@@ -1113,12 +1798,44 @@
                 </div>
                 
                 <div class="metric-card">
-                    <div class="metric-label">System Uptime</div>
-                    <div class="metric-value" id="metricUptime">00:00:00</div>
+                    <div class="metric-label">Media Files</div>
+                    <div class="metric-value" id="metricMedia">0</div>
                     <div class="metric-trend up">
-                        <i class="fas fa-clock"></i>
-                        <span>ACTIVE</span>
+                        <i class="fas fa-folder"></i>
+                        <span>GALLERY</span>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log Panel -->
+        <div class="log-panel">
+            <div class="panel-header">
+                <div class="panel-icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <h2 class="panel-title">System Logs</h2>
+                <button class="control-button" onclick="app.clearLogs()" style="padding: 8px 16px; font-size: 0.8rem;">
+                    <i class="fas fa-trash"></i>
+                    Clear Logs
+                </button>
+            </div>
+            <div class="log-container" id="logContainer">
+                <div class="log-entry info">
+                    <span class="log-time">00:00:00</span>
+                    <span class="log-message">System initialized successfully</span>
+                </div>
+                <div class="log-entry info">
+                    <span class="log-time">00:00:01</span>
+                    <span class="log-message">Emergency dashboard activated</span>
+                </div>
+                <div class="log-entry water">
+                    <span class="log-time">00:00:02</span>
+                    <span class="log-message">Water control system ready</span>
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">00:00:03</span>
+                    <span class="log-message">Click "Connect Camera" to connect hardware</span>
                 </div>
             </div>
         </div>
@@ -1130,124 +1847,480 @@
     </audio>
 
     <script>
-        // === EMERGENCY DASHBOARD SYSTEM ===
-        
-        class EmergencyDashboard {
+        // === REAL ARDUINO INTEGRATION (Web Serial API) ===
+        class ArduinoIntegration {
             constructor() {
-                this.cameraActive = false;
-                this.waterActive = false;
-                this.isRecording = false;
+                this.port = null;
+                this.reader = null;
+                this.writer = null;
+                this.connected = false;
+                this.reconnectAttempts = 0;
+                this.maxReconnectAttempts = 5;
+                this.sensorStates = [1, 1, 1]; // 1 = no fire, 0 = fire
                 this.fireDetected = false;
-                this.arduinoConnected = false;
-                this.systemUptime = 0;
-                this.stats = {
-                    cameras: 0,
-                    fires: 0,
-                    waterActivations: 0,
-                    mediaFiles: 0
-                };
+                this.fireLocation = "";
+                this.autoReconnect = true;
+                this.baudRate = 9600; // Standard Arduino baud rate
+                this.reading = false;
+                this.sensorValues = [0, 0, 0];
                 
                 this.init();
             }
             
             init() {
-                console.log('Emergency Dashboard Initialized');
-                this.bindEvents();
-                this.startUptimeCounter();
-                this.showNotification('SYSTEM ONLINE', 'Fire Command Dashboard activated', 'safe');
-                this.updateStatusIndicators();
+                console.log('Initializing Arduino integration with Web Serial API...');
                 
-                // Test fire alarm sound
-                this.testAlarmSound();
-            }
-            
-            bindEvents() {
-                // Bind Arduino tile click
-                document.getElementById('arduinoTile').addEventListener('click', () => {
-                    this.connectArduino();
-                });
-                
-                // Bind camera tile click
-                document.getElementById('cameraTile').addEventListener('click', () => {
-                    this.connectCamera();
-                });
-                
-                // Bind fire status tile click for testing
-                document.getElementById('fireStatusTile').addEventListener('click', () => {
-                    this.simulateFireDetection();
-                });
-            }
-            
-            startUptimeCounter() {
-                setInterval(() => {
-                    this.systemUptime++;
-                    const hours = Math.floor(this.systemUptime / 3600);
-                    const minutes = Math.floor((this.systemUptime % 3600) / 60);
-                    const seconds = this.systemUptime % 60;
-                    
-                    document.getElementById('metricUptime').textContent = 
-                        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                }, 1000);
-            }
-            
-            updateStatusIndicators() {
-                const systemDot = document.getElementById('systemStatusDot');
-                const systemText = document.getElementById('systemStatusText');
-                
-                if (this.fireDetected) {
-                    systemDot.className = 'status-dot critical';
-                    systemText.textContent = 'SYSTEM: CRITICAL';
-                    systemText.style.color = 'var(--emergency-red)';
-                } else if (!this.cameraActive) {
-                    systemDot.className = 'status-dot warning';
-                    systemText.textContent = 'SYSTEM: WARNING';
-                    systemText.style.color = 'var(--hazard-yellow)';
-                } else {
-                    systemDot.className = 'status-dot safe';
-                    systemText.textContent = 'SYSTEM: NORMAL';
-                    systemText.style.color = 'var(--alert-normal)';
+                // Check if Web Serial API is supported
+                if (!('serial' in navigator)) {
+                    console.error('Web Serial API not supported in this browser');
+                    this.showWebSerialError();
+                    return;
                 }
                 
-                // Update Arduino status
-                const arduinoDot = document.getElementById('arduinoStatusDot');
-                const arduinoText = document.getElementById('arduinoStatusText');
+                // Make Arduino status tile clickable
                 const arduinoTile = document.getElementById('arduinoTile');
-                const arduinoTileText = document.getElementById('arduinoTileText');
-                
-                if (this.arduinoConnected) {
-                    arduinoDot.className = 'status-dot safe';
-                    arduinoText.textContent = 'ARDUINO: CONNECTED';
-                    arduinoText.style.color = 'var(--alert-normal)';
-                    arduinoTile.className = 'status-tile safe';
-                    arduinoTileText.textContent = 'ARDUINO ONLINE';
-                } else {
-                    arduinoDot.className = 'status-dot warning';
-                    arduinoText.textContent = 'ARDUINO: OFFLINE';
-                    arduinoText.style.color = 'var(--hazard-yellow)';
-                    arduinoTile.className = 'status-tile warning';
-                    arduinoTileText.textContent = 'ARDUINO OFFLINE';
+                if (arduinoTile) {
+                    arduinoTile.addEventListener('click', () => {
+                        if (!this.connected) {
+                            this.connectSerial();
+                        }
+                    });
                 }
                 
-                // Update camera status
-                const cameraDot = document.getElementById('cameraStatusDot');
-                const cameraText = document.getElementById('cameraStatusText');
-                const cameraTile = document.getElementById('cameraTile');
-                const cameraTileText = document.getElementById('cameraTileText');
+                // Show initial status
+                this.updateConnectionStatus('disconnected');
                 
-                if (this.cameraActive) {
-                    cameraDot.className = 'status-dot safe';
-                    cameraText.textContent = 'CAMERA: ACTIVE';
-                    cameraText.style.color = 'var(--alert-normal)';
-                    cameraTile.className = 'status-tile safe';
-                    cameraTileText.textContent = 'CAMERA ONLINE';
-                    document.getElementById('metricCameras').textContent = '1/1';
+                // Check for saved connection
+                const savedConnection = localStorage.getItem('arduino_auto_connect');
+                if (savedConnection === 'true') {
+                    setTimeout(() => {
+                        this.connectSerial();
+                    }, 1000);
+                }
+            }
+            
+            showWebSerialError() {
+                const errorHtml = `
+                    <div style="background: rgba(255,34,0,0.1); border: 2px solid var(--emergency-red); 
+                                border-radius: 10px; padding: 15px; margin-top: 10px;">
+                        <h4 style="color: var(--emergency-red); margin-bottom: 10px;">
+                            <i class="fas fa-exclamation-triangle"></i> Web Serial API Not Supported
+                        </h4>
+                        <p style="font-size: 0.85rem; color: var(--aluminum);">
+                            Your browser doesn't support direct Arduino connection.<br>
+                            <strong>Supported browsers:</strong> Chrome/Edge 89+, Opera 76+
+                        </p>
+                        <p style="font-size: 0.8rem; margin-top: 8px;">
+                            Try using Chrome or Edge browser to connect to your physical Arduino.
+                        </p>
+                    </div>
+                `;
+                
+                this.showNotification('Arduino Error', 'Web Serial API not supported in this browser', 'warning');
+            }
+            
+            async connectSerial() {
+                try {
+                    console.log('🔌 Requesting serial port...');
+                    this.updateConnectionStatus('connecting');
+                    
+                    // Request a serial port
+                    this.port = await navigator.serial.requestPort();
+                    
+                    console.log('✅ Port selected:', this.port.getInfo());
+                    
+                    // Open the port with Arduino standard baud rate
+                    await this.port.open({ baudRate: this.baudRate });
+                    
+                    console.log('✅ Port opened at', this.baudRate, 'baud');
+                    
+                    // Set up text encoder/decoder
+                    const textDecoder = new TextDecoderStream();
+                    const readableStreamClosed = this.port.readable.pipeTo(textDecoder.writable);
+                    this.reader = textDecoder.readable.getReader();
+                    
+                    // Set up writer
+                    const textEncoder = new TextEncoderStream();
+                    const writableStreamClosed = textEncoder.readable.pipeTo(this.port.writable);
+                    this.writer = textEncoder.writable.getWriter();
+                    
+                    this.connected = true;
+                    this.reconnectAttempts = 0;
+                    this.updateConnectionStatus('connected');
+                    
+                    // Save auto-connect preference
+                    localStorage.setItem('arduino_auto_connect', 'true');
+                    
+                    // Send connection confirmation to Arduino
+                    await this.sendToArduino('CONNECTED\n');
+                    
+                    this.showNotification('Arduino Connected', 
+                        'Connected to Arduino UNO via Serial. Sensors active.', 
+                        'safe');
+                    this.addLog('Arduino connected via Web Serial API', 'arduino');
+                    
+                    // Start reading data
+                    this.startReading();
+                    
+                    // Set up disconnect handling
+                    this.port.addEventListener('disconnect', () => {
+                        console.log('Arduino disconnected');
+                        this.handleDisconnect();
+                    });
+                    
+                } catch (error) {
+                    console.error('Failed to connect to Arduino:', error);
+                    
+                    if (error.name === 'NotFoundError') {
+                        this.showNotification('No Arduino Found', 
+                            'No Arduino device was selected. Please try again.', 
+                            'warning');
+                    } else if (error.name === 'SecurityError') {
+                        this.showNotification('Security Error', 
+                            'Your browser blocked the Arduino connection for security.', 
+                            'warning');
+                    } else {
+                        this.showNotification('Connection Failed', 
+                            `Failed to connect: ${error.message}`, 
+                            'warning');
+                    }
+                    
+                    this.updateConnectionStatus('disconnected');
+                }
+            }
+            
+            async startReading() {
+                if (this.reading) return;
+                
+                this.reading = true;
+                console.log('📡 Starting to read Arduino data...');
+                
+                try {
+                    while (this.connected && this.reading) {
+                        try {
+                            const { value, done } = await this.reader.read();
+                            if (done) {
+                                console.log('Reader done');
+                                break;
+                            }
+                            
+                            if (value) {
+                                this.parseArduinoData(value);
+                            }
+                            
+                        } catch (error) {
+                            console.error('Error reading from Arduino:', error);
+                            break;
+                        }
+                    }
+                } finally {
+                    this.reading = false;
+                    if (this.reader) {
+                        this.reader.releaseLock();
+                    }
+                }
+            }
+            
+            parseArduinoData(data) {
+                try {
+                    // Split data by newlines (Arduino usually sends one reading per line)
+                    const lines = data.split('\n').filter(line => line.trim() !== '');
+                    
+                    lines.forEach(line => {
+                        console.log('📨 Arduino:', line);
+                        
+                        // Parse different data formats from Arduino
+                        if (line.startsWith('SENSORS:')) {
+                            // Format: SENSORS:1,1,1
+                            const sensorData = line.replace('SENSORS:', '').trim();
+                            const sensorValues = sensorData.split(',').map(val => parseInt(val));
+                            
+                            if (sensorValues.length === 3) {
+                                this.sensorStates = sensorValues;
+                                this.updateSensorDisplay();
+                                this.updateSensorStats();
+                            }
+                            
+                        } else if (line.startsWith('FIRE:')) {
+                            // Format: FIRE:Sensor2:250
+                            const fireData = line.replace('FIRE:', '').trim();
+                            const parts = fireData.split(':');
+                            
+                            if (parts.length >= 2) {
+                                const sensorName = parts[0];
+                                const sensorValue = parseInt(parts[1]) || 0;
+                                const sensorIndex = this.getSensorIndex(sensorName);
+                                
+                                if (sensorIndex !== -1) {
+                                    this.sensorStates = [1, 1, 1];
+                                    this.sensorStates[sensorIndex] = 0; // Fire detected
+                                    
+                                    this.handleFireAlert({
+                                        sensorName: sensorName,
+                                        sensorIndex: sensorIndex,
+                                        value: sensorValue,
+                                        sensorValues: this.sensorStates,
+                                        location: `Arduino: ${sensorName}`,
+                                        message: `🔥 FIRE DETECTED on ${sensorName}`
+                                    });
+                                }
+                            }
+                            
+                        } else if (line.includes('OK') || line.includes('READY')) {
+                            // Arduino is ready
+                            console.log('Arduino ready:', line);
+                            
+                        } else if (line.includes('TEST')) {
+                            // Test response
+                            this.showNotification('Arduino Test', line, 'info');
+                            
+                        } else {
+                            // Try to parse as comma-separated sensor values
+                            const values = line.split(',').map(val => parseInt(val.trim()));
+                            if (values.length === 3 && values.every(v => !isNaN(v))) {
+                                this.sensorValues = values;
+                                // Convert analog values to fire/no-fire (adjust threshold as needed)
+                                this.sensorStates = values.map(v => v < 500 ? 0 : 1);
+                                this.updateSensorDisplay();
+                                this.updateSensorStats();
+                            }
+                        }
+                    });
+                    
+                } catch (error) {
+                    console.error('Error parsing Arduino data:', error);
+                }
+            }
+            
+            getSensorIndex(sensorName) {
+                const sensorMap = {
+                    'D2': 0, 'Sensor1': 0, 'S1': 0,
+                    'D3': 1, 'Sensor2': 1, 'S2': 1,
+                    'D4': 2, 'Sensor3': 2, 'S3': 2
+                };
+                return sensorMap[sensorName] !== undefined ? sensorMap[sensorName] : -1;
+            }
+            
+            async sendToArduino(data) {
+                if (this.writer && this.connected) {
+                    try {
+                        await this.writer.write(data);
+                        console.log('📤 Sent to Arduino:', data.trim());
+                        return true;
+                    } catch (error) {
+                        console.error('Error sending to Arduino:', error);
+                        return false;
+                    }
                 } else {
-                    cameraDot.className = 'status-dot warning';
-                    cameraText.textContent = 'CAMERA: READY';
-                    cameraText.style.color = 'var(--hazard-yellow)';
-                    cameraTile.className = 'status-tile warning';
-                    cameraTileText.textContent = 'CAMERA OFFLINE';
-                    document.getElementById('metricCameras').textContent = '0/1';
+                    this.showNotification('Arduino Error', 'Arduino not connected', 'warning');
+                    return false;
+                }
+            }
+            
+            handleDisconnect() {
+                console.log('🔌 Arduino disconnected');
+                this.connected = false;
+                this.reading = false;
+                this.updateConnectionStatus('disconnected');
+                
+                this.showNotification('Arduino Disconnected', 
+                    'Arduino was disconnected', 
+                    'warning');
+                this.addLog('Arduino disconnected', 'arduino');
+                
+                // Clear auto-connect preference
+                localStorage.removeItem('arduino_auto_connect');
+                
+                // Try to reconnect
+                if (this.autoReconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
+                    this.reconnectAttempts++;
+                    setTimeout(() => {
+                        if (!this.connected) {
+                            console.log('Attempting to reconnect...');
+                            this.connectSerial();
+                        }
+                    }, 3000 * this.reconnectAttempts);
+                }
+            }
+            
+            async disconnect() {
+                // Clear auto-connect preference
+                localStorage.removeItem('arduino_auto_connect');
+                
+                if (this.reader) {
+                    this.reading = false;
+                    await this.reader.cancel();
+                    this.reader = null;
+                }
+                
+                if (this.writer) {
+                    await this.writer.close();
+                    this.writer = null;
+                }
+                
+                if (this.port) {
+                    await this.port.close();
+                    this.port = null;
+                }
+                
+                this.connected = false;
+                this.updateConnectionStatus('disconnected');
+                
+                this.showNotification('Arduino Disconnected', 
+                    'Disconnected from Arduino', 
+                    'info');
+            }
+            
+            handleFireAlert(data) {
+                console.log('🚨 FIRE ALERT from Arduino:', data);
+                
+                this.fireDetected = true;
+                this.sensorStates = data.sensorValues || [0, 1, 1];
+                this.fireLocation = data.location || 'Unknown Location';
+                
+                // Update sensor display
+                this.updateSensorDisplay();
+                
+                // Update fire location in modal
+                const fireLocationElement = document.getElementById('alertLocation');
+                if (fireLocationElement) {
+                    fireLocationElement.textContent = this.fireLocation;
+                }
+                
+                // Update fire size estimate
+                const fireSensors = this.sensorStates.filter(state => state === 0).length;
+                let fireSize = 'SMALL';
+                if (fireSensors >= 2) fireSize = 'MEDIUM';
+                if (fireSensors >= 3) fireSize = 'LARGE';
+                
+                const fireSizeElement = document.getElementById('alertSeverity');
+                if (fireSizeElement) {
+                    fireSizeElement.textContent = fireSize;
+                    fireSizeElement.style.color = fireSize === 'LARGE' ? 'var(--emergency-red)' : 
+                                                 fireSize === 'MEDIUM' ? 'var(--hazard-yellow)' : 
+                                                 'var(--fire-orange)';
+                }
+                
+                // Show Arduino alert
+                this.showArduinoFireAlert();
+                
+                // Trigger the fire alert in main app
+                if (typeof app !== 'undefined' && app.handleFireDetection) {
+                    app.handleFireDetection();
+                }
+                
+                // Add log entry
+                const sensorInfo = this.sensorStates.map((state, i) => 
+                    `Sensor ${i+1}: ${state === 0 ? '🔥 FIRE' : '✓ OK'}`
+                ).join(', ');
+                
+                this.addLog(`🔥 ARDUINO: ${data.message} [${sensorInfo}]`, 'alert');
+            }
+            
+            showArduinoFireAlert() {
+                const alertElement = document.getElementById('arduinoFireAlert');
+                const locationElement = document.getElementById('arduinoAlertLocation');
+                
+                if (alertElement && locationElement) {
+                    locationElement.textContent = this.fireLocation;
+                    alertElement.style.display = 'block';
+                    
+                    // Auto-hide after 15 seconds
+                    setTimeout(() => {
+                        alertElement.style.display = 'none';
+                    }, 15000);
+                }
+            }
+            
+            updateConnectionStatus(status) {
+                const dot = document.getElementById('arduinoStatusDot');
+                const statusText = document.getElementById('arduinoStatusText');
+                const tile = document.getElementById('arduinoTile');
+                const tileText = document.getElementById('arduinoTileText');
+                const sensorDisplay = document.getElementById('sensorDisplay');
+                
+                switch(status) {
+                    case 'connecting':
+                        dot.className = 'status-dot warning';
+                        statusText.textContent = 'ARDUINO: CONNECTING...';
+                        tile.className = 'status-tile warning';
+                        tileText.textContent = 'CONNECTING...';
+                        sensorDisplay.style.display = 'none';
+                        break;
+                        
+                    case 'connected':
+                        dot.className = 'status-dot safe';
+                        statusText.textContent = 'ARDUINO: CONNECTED';
+                        tile.className = 'status-tile safe';
+                        tileText.textContent = 'ARDUINO ONLINE';
+                        sensorDisplay.style.display = 'grid';
+                        break;
+                        
+                    case 'disconnected':
+                        dot.className = 'status-dot warning';
+                        statusText.textContent = 'ARDUINO: OFFLINE';
+                        tile.className = 'status-tile warning';
+                        tileText.textContent = 'ARDUINO OFFLINE';
+                        sensorDisplay.style.display = 'none';
+                        break;
+                        
+                    case 'error':
+                        dot.className = 'status-dot warning';
+                        statusText.textContent = 'ARDUINO: ERROR';
+                        tile.className = 'status-tile warning';
+                        tileText.textContent = 'CONNECTION ERROR';
+                        sensorDisplay.style.display = 'none';
+                        break;
+                }
+            }
+            
+            updateSensorDisplay() {
+                for (let i = 0; i < 3; i++) {
+                    const element = document.getElementById(`sensor${i + 1}Value`);
+                    if (element) {
+                        const state = this.sensorStates[i] || 1;
+                        
+                        // Update value and status
+                        if (state === 0) {
+                            // Fire detected
+                            element.textContent = '🔥 FIRE';
+                            element.className = 'sensor-value critical';
+                            element.title = `Sensor ${i+1} (D${i+2}): FIRE DETECTED`;
+                        } else {
+                            // No fire
+                            element.textContent = '✓ OK';
+                            element.className = 'sensor-value safe';
+                            element.title = `Sensor ${i+1} (D${i+2}): Normal`;
+                        }
+                    }
+                }
+                
+                // Update fire status tile
+                const fireSensors = this.sensorStates.filter(state => state === 0).length;
+                const fireTile = document.getElementById('fireStatusTile');
+                const fireText = document.getElementById('fireStatusText');
+                
+                if (fireSensors > 0) {
+                    fireTile.className = 'status-tile critical';
+                    fireText.textContent = `FIRE x${fireSensors}`;
+                    this.fireDetected = true;
+                } else {
+                    fireTile.className = 'status-tile safe';
+                    fireText.textContent = 'NO FIRE';
+                    this.fireDetected = false;
+                }
+            }
+            
+            updateSensorStats() {
+                const fireCount = this.sensorStates.filter(state => state === 0).length;
+                const statsElement = document.getElementById('metricFires');
+                if (statsElement) {
+                    statsElement.textContent = fireCount;
+                    if (fireCount > 0) {
+                        statsElement.className = 'metric-value critical';
+                    } else {
+                        statsElement.className = 'metric-value safe';
+                    }
                 }
             }
             
@@ -1273,156 +2346,479 @@
                 }, 5000);
             }
             
-            simulateFireDetection() {
-                if (this.fireDetected) return;
+            addLog(message, type = 'info') {
+                const logContainer = document.getElementById('logContainer');
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${type}`;
                 
-                this.fireDetected = true;
-                this.stats.fires++;
-                
-                // Update UI
-                const fireTile = document.getElementById('fireStatusTile');
-                const fireText = document.getElementById('fireStatusText');
-                fireTile.className = 'status-tile critical';
-                fireText.textContent = 'FIRE DETECTED!';
-                fireText.style.color = 'var(--emergency-red)';
-                
-                document.getElementById('metricFires').textContent = this.stats.fires;
-                document.getElementById('metricFires').className = 'metric-value critical';
-                
-                // Show emergency alert
-                this.showEmergencyAlert();
-                
-                // Play alarm sound
-                this.playAlarmSound();
-                
-                this.showNotification('FIRE EMERGENCY', 'Fire detected in main area!', 'critical');
-                this.updateStatusIndicators();
-                
-                // Auto-activate water after 2 seconds
-                setTimeout(() => {
-                    if (this.fireDetected) {
-                        this.activateWater();
-                    }
-                }, 2000);
-            }
-            
-            showEmergencyAlert() {
-                const alertModal = document.getElementById('emergencyAlert');
-                const alertTime = document.getElementById('alertTime');
-                
-                const now = new Date();
-                alertTime.textContent = now.toLocaleTimeString('en-US', {
+                const time = new Date();
+                const timeStr = time.toLocaleTimeString('en-US', { 
                     hour12: false,
                     hour: '2-digit',
                     minute: '2-digit',
                     second: '2-digit'
                 });
                 
-                alertModal.style.display = 'flex';
+                logEntry.innerHTML = `
+                    <span class="log-time">${timeStr}</span>
+                    <span class="log-message">${message}</span>
+                `;
                 
-                // Auto-close after 30 seconds if not acknowledged
-                this.autoAlertTimeout = setTimeout(() => {
-                    if (alertModal.style.display === 'flex') {
-                        this.acknowledgeAlert();
-                    }
-                }, 30000);
-            }
-            
-            acknowledgeAlert() {
-                const alertModal = document.getElementById('emergencyAlert');
-                alertModal.style.display = 'none';
+                logContainer.appendChild(logEntry);
+                logContainer.scrollTop = logContainer.scrollHeight;
                 
-                this.stopAlarmSound();
-                this.fireDetected = false;
-                
-                // Reset fire status
-                const fireTile = document.getElementById('fireStatusTile');
-                const fireText = document.getElementById('fireStatusText');
-                fireTile.className = 'status-tile safe';
-                fireText.textContent = 'NO FIRE';
-                fireText.style.color = '';
-                
-                this.showNotification('ALERT ACKNOWLEDGED', 'Fire alert cleared', 'safe');
-                this.updateStatusIndicators();
-                
-                if (this.autoAlertTimeout) {
-                    clearTimeout(this.autoAlertTimeout);
+                while (logContainer.children.length > 50) {
+                    logContainer.removeChild(logContainer.firstChild);
                 }
             }
+        }
+
+        // Initialize Arduino integration
+        window.arduino = new ArduinoIntegration();
+
+        // === MAIN APULA APP WITH CAMERA & GALLERY ===
+        class APULAApp {
+            constructor() {
+                this.camera = { 
+                    stream: null, 
+                    mediaRecorder: null, 
+                    isActive: false,
+                    currentType: null
+                };
+                this.isRecording = false;
+                this.recordedChunks = [];
+                this.waterActive = false;
+                this.mediaGallery = [];
+                this.currentGalleryTab = 'all';
+                this.systemUptime = 0;
+                this.stats = {
+                    activeCameras: 0,
+                    fires: 0,
+                    waterActivations: 0,
+                    mediaCount: 0,
+                    storageUsed: 0
+                };
+                
+                this.currentMedia = null;
+                this.currentVideo = null;
+                
+                this.init();
+            }
             
-            connectArduino() {
-                if (this.arduinoConnected) {
-                    this.showNotification('ARDUINO', 'Already connected', 'safe');
+            init() {
+                console.log('APULA Fire Command Dashboard Initialized');
+                this.loadGalleryFromStorage();
+                this.bindEvents();
+                this.startUptimeCounter();
+                this.updateGallery();
+                this.showNotification('SYSTEM ONLINE', 'Fire Command Dashboard activated', 'safe');
+                this.addLog('Emergency dashboard system initialized', 'info');
+            }
+            
+            bindEvents() {
+                // Bind camera tile click
+                document.getElementById('cameraTile').addEventListener('click', () => {
+                    this.selectCamera('webcam');
+                });
+                
+                // Bind water tile click
+                document.getElementById('waterStatusTile').addEventListener('click', () => {
+                    if (this.waterActive) {
+                        this.deactivateWater();
+                    } else {
+                        this.activateWater();
+                    }
+                });
+                
+                // Initialize camera options
+                this.initCameraOptions();
+            }
+            
+            initCameraOptions() {
+                // Set webcam as default active
+                document.getElementById('webcamBtn').classList.add('active');
+                this.camera.currentType = 'webcam';
+            }
+            
+            selectCamera(type) {
+                // Update active button
+                const buttons = document.querySelectorAll('.camera-option-btn');
+                buttons.forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+                
+                this.camera.currentType = type;
+                
+                // Show/hide RTSP input
+                const rtspInput = document.getElementById('rtspInput');
+                if (type === 'rtsp') {
+                    rtspInput.style.display = 'block';
+                    this.showNotification('RTSP SELECTED', 'Enter RTSP stream URL', 'info');
+                } else {
+                    rtspInput.style.display = 'none';
+                    this.showNotification(`${type.toUpperCase()} SELECTED`, `Camera type set to ${type}`, 'info');
+                }
+                
+                // Update connect button text
+                const connectBtn = document.getElementById('connectCameraBtn');
+                connectBtn.innerHTML = `<i class="fas fa-plug"></i> CONNECT ${type.toUpperCase()}`;
+                
+                this.addLog(`Camera type selected: ${type}`, 'info');
+            }
+            
+            connectRTSP() {
+                const rtspUrl = document.getElementById('rtspUrl').value;
+                if (!rtspUrl) {
+                    this.showNotification('RTSP ERROR', 'Please enter RTSP URL', 'warning');
                     return;
                 }
                 
-                this.showNotification('ARDUINO', 'Connecting to Arduino...', 'warning');
+                this.showNotification('RTSP CONNECTION', 'Connecting to RTSP stream...', 'info');
+                this.addLog(`Attempting to connect RTSP: ${rtspUrl}`, 'info');
                 
-                // Simulate connection delay
+                // In a real implementation, you would use a library like hls.js or flv.js
+                // For now, we'll simulate connection
                 setTimeout(() => {
-                    this.arduinoConnected = true;
-                    this.showNotification('ARDUINO CONNECTED', 'Fire sensors active', 'safe');
-                    this.updateStatusIndicators();
-                }, 1500);
+                    this.showNotification('RTSP ERROR', 'RTSP streaming requires additional setup', 'warning');
+                    this.addLog('RTSP connection failed - requires streaming server setup', 'info');
+                }, 2000);
             }
             
-            connectCamera() {
-                if (this.cameraActive) {
+            async connectCamera() {
+                if (this.camera.isActive) {
                     this.showNotification('CAMERA', 'Camera already active', 'safe');
                     return;
                 }
                 
-                this.showNotification('CAMERA', 'Activating surveillance feed...', 'warning');
+                if (this.camera.currentType !== 'webcam') {
+                    if (this.camera.currentType === 'rtsp') {
+                        this.connectRTSP();
+                    } else {
+                        this.showNotification('CAMERA TYPE', `${this.camera.currentType} cameras require additional setup`, 'warning');
+                    }
+                    return;
+                }
                 
-                // Simulate camera activation
-                setTimeout(() => {
-                    this.cameraActive = true;
-                    this.stats.cameras = 1;
+                this.showLoading(true);
+                
+                try {
+                    // Request camera with audio for recording
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: { 
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 },
+                            frameRate: { ideal: 30 }
+                        },
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            sampleRate: 44100
+                        }
+                    });
                     
-                    const cameraOverlay = document.querySelector('.camera-overlay');
-                    cameraOverlay.style.opacity = '0';
-                    setTimeout(() => {
-                        cameraOverlay.style.display = 'none';
-                    }, 300);
+                    const videoElement = document.getElementById('cameraFeed');
+                    videoElement.srcObject = stream;
+                    videoElement.style.display = 'block';
                     
-                    this.showNotification('SURVEILLANCE ACTIVE', 'Camera feed online', 'safe');
-                    this.updateStatusIndicators();
-                }, 2000);
+                    const cameraOverlay = document.getElementById('cameraOverlay');
+                    cameraOverlay.style.display = 'none';
+                    
+                    const cameraLabel = document.getElementById('cameraFeedLabel');
+                    cameraLabel.textContent = 'LIVE CAMERA FEED';
+                    
+                    this.camera.stream = stream;
+                    this.camera.isActive = true;
+                    
+                    // Setup media recorder with audio
+                    this.setupMediaRecorder(stream);
+                    
+                    this.stats.activeCameras = 1;
+                    this.updateCameraStatus();
+                    this.updateStats();
+                    
+                    this.showNotification('CAMERA CONNECTED', 
+                        'Camera connected successfully with audio recording capability', 
+                        'safe');
+                    this.addLog('Camera connected successfully with audio', 'info');
+                    
+                    // Enable recording and snapshot buttons
+                    document.getElementById('recordBtn').classList.remove('disabled');
+                    document.getElementById('snapshotBtn').classList.remove('disabled');
+                    
+                    // Update camera tile
+                    const cameraTile = document.getElementById('cameraTile');
+                    const cameraTileText = document.getElementById('cameraTileText');
+                    cameraTile.className = 'status-tile safe';
+                    cameraTileText.textContent = 'CAMERA ONLINE';
+                    
+                } catch (error) {
+                    this.showNotification('CAMERA ERROR', 
+                        `Failed to access camera: ${error.message}`, 
+                        'warning');
+                    this.addLog(`Failed to connect camera: ${error.message}`, 'info');
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+            
+            setupMediaRecorder(stream) {
+                try {
+                    // Try different MIME types for better compatibility
+                    const options = { 
+                        mimeType: 'video/webm;codecs=vp9,opus',
+                        videoBitsPerSecond: 2500000,
+                        audioBitsPerSecond: 128000
+                    };
+                    
+                    // Check if the MIME type is supported
+                    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                        options.mimeType = 'video/webm;codecs=vp8,opus';
+                    }
+                    
+                    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                        options.mimeType = 'video/mp4';
+                    }
+                    
+                    this.camera.mediaRecorder = new MediaRecorder(stream, options);
+                    
+                    this.camera.mediaRecorder.ondataavailable = (event) => {
+                        if (event.data.size > 0) {
+                            this.recordedChunks.push(event.data);
+                        }
+                    };
+                    
+                    this.camera.mediaRecorder.onstop = () => {
+                        this.saveRecording();
+                    };
+                    
+                    this.camera.mediaRecorder.onerror = (error) => {
+                        console.error('MediaRecorder error:', error);
+                        this.showNotification('RECORDING ERROR', 'Recording failed', 'warning');
+                    };
+                    
+                } catch (error) {
+                    console.error('MediaRecorder setup error:', error);
+                    // Fallback to default MediaRecorder
+                    try {
+                        this.camera.mediaRecorder = new MediaRecorder(stream);
+                        this.camera.mediaRecorder.ondataavailable = (event) => {
+                            if (event.data.size > 0) {
+                                this.recordedChunks.push(event.data);
+                            }
+                        };
+                        this.camera.mediaRecorder.onstop = () => {
+                            this.saveRecording();
+                        };
+                    } catch (e) {
+                        console.error('Failed to setup MediaRecorder:', e);
+                        this.showNotification('RECORDING ERROR', 'Cannot setup recording', 'warning');
+                    }
+                }
             }
             
             startRecording() {
-                if (!this.cameraActive) {
-                    this.showNotification('RECORDING', 'Camera not connected', 'warning');
+                if (!this.camera.isActive) {
+                    this.showNotification('RECORDING ERROR', 'No camera connected', 'warning');
                     return;
                 }
                 
                 if (this.isRecording) {
-                    this.showNotification('RECORDING', 'Already recording', 'warning');
+                    this.showNotification('RECORDING ERROR', 'Already recording', 'warning');
                     return;
                 }
                 
                 this.isRecording = true;
-                this.showNotification('RECORDING STARTED', 'Recording surveillance feed', 'safe');
+                this.recordedChunks = [];
                 
-                // Simulate recording indicator
-                const recordButton = document.querySelector('.control-button:nth-child(1)');
-                recordButton.innerHTML = '<i class="fas fa-circle"></i> RECORDING';
-                recordButton.style.background = 'linear-gradient(135deg, var(--emergency-red), #CC0000)';
+                if (this.camera.mediaRecorder) {
+                    this.camera.mediaRecorder.start(1000); // Collect data every second
+                }
+                
+                // Update UI
+                document.getElementById('recordBtn').classList.add('disabled');
+                document.getElementById('stopBtn').classList.remove('disabled');
+                document.getElementById('recordBtn').classList.add('recording');
+                document.getElementById('recordingIndicator').style.display = 'flex';
+                
+                this.showNotification('RECORDING STARTED', 
+                    'Recording started with audio', 
+                    'safe');
+                this.addLog('Recording started with audio', 'media');
+                
+                this.stats.storageUsed += 0.1;
+                this.updateStats();
             }
             
-            captureSnapshot() {
-                if (!this.cameraActive) {
-                    this.showNotification('SNAPSHOT', 'Camera not connected', 'warning');
+            stopRecording() {
+                if (!this.isRecording) {
                     return;
                 }
                 
-                this.showNotification('SNAPSHOT CAPTURED', 'Image saved to gallery', 'safe');
+                this.isRecording = false;
                 
-                // Visual feedback
+                if (this.camera.mediaRecorder && this.camera.mediaRecorder.state !== 'inactive') {
+                    this.camera.mediaRecorder.stop();
+                }
+                
+                // Update UI
+                document.getElementById('recordBtn').classList.remove('disabled');
+                document.getElementById('stopBtn').classList.add('disabled');
+                document.getElementById('recordBtn').classList.remove('recording');
+                document.getElementById('recordingIndicator').style.display = 'none';
+                
+                this.showNotification('RECORDING STOPPED', 
+                    'Recording saved to gallery', 
+                    'info');
+                this.addLog('Recording stopped', 'media');
+            }
+            
+            saveRecording() {
+                if (this.recordedChunks.length === 0) {
+                    this.showNotification('RECORDING ERROR', 'No recording data found', 'warning');
+                    return;
+                }
+                
+                const blob = new Blob(this.recordedChunks, {
+                    type: 'video/webm'
+                });
+                
+                const sizeMB = Math.round(blob.size / (1024 * 1024) * 100) / 100;
+                const timestamp = new Date().toISOString();
+                const videoUrl = URL.createObjectURL(blob);
+                
+                // Create video element to get duration
+                const video = document.createElement('video');
+                video.src = videoUrl;
+                video.preload = 'metadata';
+                
+                video.onloadedmetadata = () => {
+                    const mediaItem = {
+                        id: Date.now(),
+                        type: 'video',
+                        url: videoUrl,
+                        blob: blob,
+                        timestamp: timestamp,
+                        size: sizeMB,
+                        duration: Math.round(video.duration),
+                        title: `Recording_${new Date(timestamp).toLocaleString().replace(/[/:]/g, '-')}`,
+                        format: 'webm'
+                    };
+                    
+                    this.mediaGallery.push(mediaItem);
+                    this.stats.mediaCount++;
+                    this.stats.storageUsed += sizeMB;
+                    this.updateStats();
+                    this.updateGallery();
+                    this.saveGalleryToStorage();
+                    
+                    this.showNotification('RECORDING SAVED', 
+                        `Video saved (${sizeMB} MB, ${mediaItem.duration}s)`, 
+                        'media');
+                    this.addLog(`Video recording saved: ${sizeMB} MB, ${mediaItem.duration}s`, 'media');
+                };
+                
+                video.onerror = () => {
+                    // If we can't get metadata, save without duration
+                    const mediaItem = {
+                        id: Date.now(),
+                        type: 'video',
+                        url: videoUrl,
+                        blob: blob,
+                        timestamp: timestamp,
+                        size: sizeMB,
+                        duration: 0,
+                        title: `Recording_${new Date(timestamp).toLocaleString().replace(/[/:]/g, '-')}`,
+                        format: 'webm'
+                    };
+                    
+                    this.mediaGallery.push(mediaItem);
+                    this.stats.mediaCount++;
+                    this.stats.storageUsed += sizeMB;
+                    this.updateStats();
+                    this.updateGallery();
+                    this.saveGalleryToStorage();
+                    
+                    this.showNotification('RECORDING SAVED', 
+                        `Video saved (${sizeMB} MB)`, 
+                        'media');
+                    this.addLog(`Video recording saved: ${sizeMB} MB`, 'media');
+                };
+            }
+            
+            captureSnapshot() {
+                if (!this.camera.isActive) {
+                    this.showNotification('SNAPSHOT ERROR', 'Camera is not connected', 'warning');
+                    return;
+                }
+                
+                const videoElement = document.getElementById('cameraFeed');
+                
+                if (!videoElement) {
+                    this.showNotification('SNAPSHOT ERROR', 'Video element not found', 'warning');
+                    return;
+                }
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = videoElement.videoWidth || 640;
+                canvas.height = videoElement.videoHeight || 480;
+                
+                try {
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                    
+                    const timestamp = new Date().toISOString();
+                    const imageUrl = canvas.toDataURL('image/jpeg', 0.9);
+                    
+                    const mediaItem = {
+                        id: Date.now(),
+                        type: 'photo',
+                        url: imageUrl,
+                        blob: null,
+                        timestamp: timestamp,
+                        size: 0.1, // Approximate size in MB
+                        title: `Snapshot_${new Date(timestamp).toLocaleString().replace(/[/:]/g, '-')}`,
+                        format: 'jpeg'
+                    };
+                    
+                    this.mediaGallery.push(mediaItem);
+                    this.stats.mediaCount++;
+                    this.stats.storageUsed += 0.1;
+                    this.updateStats();
+                    this.updateGallery();
+                    this.saveGalleryToStorage();
+                    
+                    this.showNotification('SNAPSHOT CAPTURED', 
+                        'Photo saved to gallery', 
+                        'media');
+                    this.addLog('Snapshot captured and saved', 'media');
+                    
+                    // Visual feedback
+                    this.flashCameraFeedback();
+                    
+                } catch (error) {
+                    this.showNotification('SNAPSHOT ERROR', 'Failed to capture image', 'warning');
+                    console.error('Snapshot error:', error);
+                }
+            }
+            
+            flashCameraFeedback() {
+                const flash = document.createElement('div');
+                flash.style.position = 'absolute';
+                flash.style.top = '0';
+                flash.style.left = '0';
+                flash.style.width = '100%';
+                flash.style.height = '100%';
+                flash.style.background = 'rgba(255, 255, 255, 0.8)';
+                flash.style.pointerEvents = 'none';
+                flash.style.zIndex = '100';
+                flash.style.animation = 'fadeOut 0.3s ease forwards';
+                
                 const cameraFeed = document.querySelector('.camera-feed');
-                cameraFeed.style.boxShadow = 'inset 0 0 100px rgba(255, 255, 255, 0.5)';
+                cameraFeed.appendChild(flash);
+                
                 setTimeout(() => {
-                    cameraFeed.style.boxShadow = 'inset 0 0 30px rgba(0, 0, 0, 0.8)';
+                    if (flash.parentNode) {
+                        flash.remove();
+                    }
                 }, 300);
             }
             
@@ -1441,9 +2837,13 @@
                 waterText.textContent = 'WATER ACTIVE';
                 
                 document.getElementById('metricWater').textContent = this.stats.waterActivations;
-                document.getElementById('metricWater').className = 'metric-value safe';
+                document.getElementById('activateWaterBtn').classList.add('disabled');
                 
-                this.showNotification('WATER SYSTEM ACTIVATED', 'Fire suppression active', 'safe');
+                this.showNotification('WATER SYSTEM ACTIVATED', 
+                    'Water system activated', 
+                    'safe');
+                this.addLog('Water system activated', 'water');
+                this.updateStats();
                 
                 // Visual water effect
                 const waterEffect = document.createElement('div');
@@ -1474,14 +2874,21 @@
                 waterTile.className = 'status-tile';
                 waterText.textContent = 'WATER READY';
                 
+                document.getElementById('activateWaterBtn').classList.remove('disabled');
+                
                 this.showNotification('WATER SYSTEM', 'Deactivated', 'info');
+                this.addLog('Water system deactivated', 'water');
             }
             
             emergencyStop() {
                 if (confirm('⚠️ EMERGENCY STOP\n\nActivate emergency shutdown?')) {
                     this.waterActive = false;
                     this.isRecording = false;
-                    this.fireDetected = false;
+                    
+                    // Stop recording if active
+                    if (this.camera.mediaRecorder && this.camera.mediaRecorder.state === 'recording') {
+                        this.camera.mediaRecorder.stop();
+                    }
                     
                     // Reset all status
                     const fireTile = document.getElementById('fireStatusTile');
@@ -1494,20 +2901,70 @@
                     waterTile.className = 'status-tile';
                     waterText.textContent = 'WATER READY';
                     
-                    // Reset recording button
-                    const recordButton = document.querySelector('.control-button:nth-child(1)');
-                    recordButton.innerHTML = '<i class="fas fa-record-vinyl"></i> RECORD';
-                    recordButton.style.background = '';
+                    // Reset recording UI
+                    document.getElementById('recordBtn').classList.remove('disabled', 'recording');
+                    document.getElementById('stopBtn').classList.add('disabled');
+                    document.getElementById('recordingIndicator').style.display = 'none';
                     
+                    this.showNotification('EMERGENCY STOP', 'All systems halted', 'warning');
+                    this.addLog('EMERGENCY STOP activated - All systems halted', 'alert');
+                    
+                    // Stop any active alarm
                     this.stopAlarmSound();
-                    
-                    this.showNotification('EMERGENCY STOP', 'All systems halted', 'critical');
-                    this.updateStatusIndicators();
-                    
-                    // Re-enable camera after emergency stop
-                    setTimeout(() => {
-                        this.showNotification('SYSTEM RECOVERY', 'Systems resetting...', 'warning');
-                    }, 2000);
+                }
+            }
+            
+            handleFireDetection() {
+                // Update fire statistics
+                this.stats.fires++;
+                this.updateStats();
+                
+                // Show emergency alert
+                this.showEmergencyAlert();
+                
+                // Play alarm sound
+                this.playAlarmSound();
+                
+                this.showNotification('FIRE EMERGENCY', 'Fire detected!', 'critical');
+                
+                // Auto-activate water after 2 seconds
+                setTimeout(() => {
+                    this.activateWater();
+                }, 2000);
+            }
+            
+            showEmergencyAlert() {
+                const alertModal = document.getElementById('emergencyAlert');
+                const alertTime = document.getElementById('alertTime');
+                
+                const now = new Date();
+                alertTime.textContent = now.toLocaleTimeString('en-US', {
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                
+                alertModal.style.display = 'flex';
+                
+                // Auto-close after 30 seconds if not acknowledged
+                this.autoAlertTimeout = setTimeout(() => {
+                    if (alertModal.style.display === 'flex') {
+                        this.acknowledgeAlert();
+                    }
+                }, 30000);
+            }
+            
+            acknowledgeAlert() {
+                const alertModal = document.getElementById('emergencyAlert');
+                alertModal.style.display = 'none';
+                
+                this.stopAlarmSound();
+                
+                this.showNotification('ALERT ACKNOWLEDGED', 'Fire alert cleared', 'safe');
+                
+                if (this.autoAlertTimeout) {
+                    clearTimeout(this.autoAlertTimeout);
                 }
             }
             
@@ -1524,30 +2981,436 @@
                 alarmSound.currentTime = 0;
             }
             
-            testAlarmSound() {
-                // Quick test of alarm sound on startup
-                setTimeout(() => {
-                    const alarmSound = document.getElementById('fireAlarmSound');
-                    alarmSound.volume = 0.3;
-                    alarmSound.currentTime = 1;
-                    alarmSound.play().then(() => {
-                        setTimeout(() => alarmSound.pause(), 1000);
-                    }).catch(e => console.log('Test alarm skipped:', e));
+            // === GALLERY FUNCTIONS ===
+            showGalleryTab(tab) {
+                this.currentGalleryTab = tab;
+                
+                // Update active tab
+                const tabs = document.querySelectorAll('.gallery-tab');
+                tabs.forEach(t => t.classList.remove('active'));
+                event.target.classList.add('active');
+                
+                this.updateGallery();
+            }
+            
+            updateGallery() {
+                const galleryGrid = document.getElementById('galleryGrid');
+                const emptyGallery = document.getElementById('emptyGallery');
+                
+                // Clear current grid
+                galleryGrid.innerHTML = '';
+                
+                // Filter media based on current tab
+                let filteredMedia = this.mediaGallery;
+                if (this.currentGalleryTab === 'photos') {
+                    filteredMedia = this.mediaGallery.filter(item => item.type === 'photo');
+                } else if (this.currentGalleryTab === 'videos') {
+                    filteredMedia = this.mediaGallery.filter(item => item.type === 'video');
+                }
+                
+                // Show empty state if no media
+                if (filteredMedia.length === 0) {
+                    emptyGallery.style.display = 'flex';
+                    return;
+                }
+                
+                emptyGallery.style.display = 'none';
+                
+                // Sort by newest first
+                filteredMedia.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                // Create gallery items
+                filteredMedia.forEach((item, index) => {
+                    const galleryItem = document.createElement('div');
+                    galleryItem.className = 'gallery-item';
+                    galleryItem.dataset.id = item.id;
+                    
+                    const date = new Date(item.timestamp);
+                    const timeString = date.toLocaleTimeString('en-US', {
+                        hour12: false,
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    const dateString = date.toLocaleDateString();
+                    
+                    if (item.type === 'photo') {
+                        galleryItem.innerHTML = `
+                            <img src="${item.url}" alt="Snapshot" loading="lazy">
+                            <div class="gallery-item-info">
+                                <span>${timeString} | ${dateString}</span>
+                                <div class="gallery-item-actions">
+                                    <button class="gallery-item-btn" onclick="app.viewMedia(${item.id})" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="gallery-item-btn" onclick="app.downloadMedia(${item.id})" title="Download">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                    <button class="gallery-item-btn" onclick="app.deleteMedia(${item.id})" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="gallery-item-type">PHOTO</div>
+                        `;
+                    } else if (item.type === 'video') {
+                        galleryItem.innerHTML = `
+                            <video muted playsinline>
+                                <source src="${item.url}" type="video/webm">
+                            </video>
+                            <div class="gallery-item-info">
+                                <span>${timeString} | ${dateString} | ${item.duration}s</span>
+                                <div class="gallery-item-actions">
+                                    <button class="gallery-item-btn" onclick="app.viewMedia(${item.id})" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="gallery-item-btn" onclick="app.downloadMedia(${item.id})" title="Download">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                    <button class="gallery-item-btn" onclick="app.deleteMedia(${item.id})" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="gallery-item-type">VIDEO</div>
+                        `;
+                    }
+                    
+                    galleryGrid.appendChild(galleryItem);
+                });
+                
+                // Update media count
+                document.getElementById('metricMedia').textContent = this.mediaGallery.length;
+            }
+            
+            viewMedia(id) {
+                const mediaItem = this.mediaGallery.find(item => item.id === id);
+                if (!mediaItem) return;
+                
+                this.currentMedia = mediaItem;
+                const viewer = document.getElementById('mediaViewer');
+                const content = document.getElementById('mediaContent');
+                const info = document.getElementById('mediaInfo');
+                const videoControls = document.getElementById('videoControls');
+                
+                const date = new Date(mediaItem.timestamp);
+                const timeString = date.toLocaleTimeString('en-US', {
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                const dateString = date.toLocaleDateString();
+                
+                if (mediaItem.type === 'photo') {
+                    content.innerHTML = `<img src="${mediaItem.url}" class="media-content" alt="Snapshot">`;
+                    videoControls.style.display = 'none';
+                    info.innerHTML = `
+                        <div>
+                            <strong>Photo</strong> | ${dateString} ${timeString} | ${mediaItem.size.toFixed(2)} MB
+                        </div>
+                        <div>
+                            <button class="gallery-item-btn" onclick="app.downloadMedia(${mediaItem.id})">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                        </div>
+                    `;
+                } else if (mediaItem.type === 'video') {
+                    content.innerHTML = `
+                        <video id="viewerVideo" controls autoplay class="media-content">
+                            <source src="${mediaItem.url}" type="video/webm">
+                            Your browser does not support the video tag.
+                        </video>
+                    `;
+                    videoControls.style.display = 'flex';
+                    info.innerHTML = `
+                        <div>
+                            <strong>Video</strong> | ${dateString} ${timeString} | ${mediaItem.duration}s | ${mediaItem.size.toFixed(2)} MB
+                        </div>
+                        <div>
+                            <button class="gallery-item-btn" onclick="app.downloadMedia(${mediaItem.id})">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Store video element reference
+                    this.currentVideo = document.getElementById('viewerVideo');
+                    this.currentVideo.onplay = () => {
+                        document.getElementById('videoPlayBtn').className = 'fas fa-pause';
+                    };
+                    this.currentVideo.onpause = () => {
+                        document.getElementById('videoPlayBtn').className = 'fas fa-play';
+                    };
+                }
+                
+                viewer.style.display = 'flex';
+            }
+            
+            closeMediaViewer() {
+                const viewer = document.getElementById('mediaViewer');
+                viewer.style.display = 'none';
+                
+                if (this.currentVideo) {
+                    this.currentVideo.pause();
+                    this.currentVideo = null;
+                }
+                this.currentMedia = null;
+            }
+            
+            toggleVideoPlayback() {
+                if (!this.currentVideo) return;
+                
+                if (this.currentVideo.paused) {
+                    this.currentVideo.play();
+                } else {
+                    this.currentVideo.pause();
+                }
+            }
+            
+            toggleVideoMute() {
+                if (!this.currentVideo) return;
+                
+                this.currentVideo.muted = !this.currentVideo.muted;
+                const muteBtn = document.getElementById('videoMuteBtn');
+                muteBtn.className = this.currentVideo.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+            }
+            
+            downloadMedia(id) {
+                const mediaItem = this.mediaGallery.find(item => item.id === id);
+                if (!mediaItem) return;
+                
+                if (mediaItem.type === 'photo') {
+                    // For photos (data URL)
+                    const link = document.createElement('a');
+                    link.href = mediaItem.url;
+                    link.download = `${mediaItem.title}.jpg`;
+                    link.click();
+                } else if (mediaItem.type === 'video' && mediaItem.blob) {
+                    // For videos (Blob)
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(mediaItem.blob);
+                    link.download = `${mediaItem.title}.webm`;
+                    link.click();
+                    
+                    // Clean up URL after download
+                    setTimeout(() => URL.revokeObjectURL(link.href), 100);
+                } else if (mediaItem.type === 'video') {
+                    // Fallback for videos without blob
+                    const link = document.createElement('a');
+                    link.href = mediaItem.url;
+                    link.download = `${mediaItem.title}.webm`;
+                    link.click();
+                }
+                
+                this.showNotification('DOWNLOAD STARTED', `Downloading ${mediaItem.type}`, 'info');
+                this.addLog(`Downloaded ${mediaItem.type}: ${mediaItem.title}`, 'media');
+            }
+            
+            downloadCurrentMedia() {
+                if (this.currentMedia) {
+                    this.downloadMedia(this.currentMedia.id);
+                }
+            }
+            
+            deleteMedia(id) {
+                if (!confirm('Are you sure you want to delete this media file?')) {
+                    return;
+                }
+                
+                const index = this.mediaGallery.findIndex(item => item.id === id);
+                if (index === -1) return;
+                
+                const mediaItem = this.mediaGallery[index];
+                
+                // Update stats
+                this.stats.mediaCount--;
+                this.stats.storageUsed -= mediaItem.size || 0;
+                
+                // Remove from array
+                this.mediaGallery.splice(index, 1);
+                
+                // Update UI and storage
+                this.updateGallery();
+                this.updateStats();
+                this.saveGalleryToStorage();
+                
+                this.showNotification('MEDIA DELETED', 'Media file removed from gallery', 'info');
+                this.addLog(`Deleted ${mediaItem.type}: ${mediaItem.title}`, 'media');
+            }
+            
+            clearGallery() {
+                if (this.mediaGallery.length === 0) {
+                    this.showNotification('GALLERY', 'Gallery is already empty', 'info');
+                    return;
+                }
+                
+                if (!confirm('Are you sure you want to clear all media from the gallery? This cannot be undone.')) {
+                    return;
+                }
+                
+                // Clear gallery
+                this.mediaGallery = [];
+                this.stats.mediaCount = 0;
+                this.stats.storageUsed = 0;
+                
+                // Update UI and storage
+                this.updateGallery();
+                this.updateStats();
+                this.saveGalleryToStorage();
+                
+                this.showNotification('GALLERY CLEARED', 'All media files removed', 'info');
+                this.addLog('Gallery cleared - all media files removed', 'media');
+            }
+            
+            loadGalleryFromStorage() {
+                const savedGallery = localStorage.getItem('apula_gallery');
+                if (savedGallery) {
+                    try {
+                        this.mediaGallery = JSON.parse(savedGallery);
+                        this.addLog('Gallery loaded from local storage', 'info');
+                    } catch (e) {
+                        console.error('Failed to load gallery:', e);
+                        this.mediaGallery = [];
+                    }
+                }
+                
+                const savedStats = localStorage.getItem('apula_stats');
+                if (savedStats) {
+                    try {
+                        const stats = JSON.parse(savedStats);
+                        this.stats.mediaCount = stats.mediaCount || 0;
+                        this.stats.storageUsed = stats.storageUsed || 0;
+                    } catch (e) {
+                        console.error('Failed to load stats:', e);
+                    }
+                }
+            }
+            
+            saveGalleryToStorage() {
+                try {
+                    localStorage.setItem('apula_gallery', JSON.stringify(this.mediaGallery));
+                    localStorage.setItem('apula_stats', JSON.stringify({
+                        mediaCount: this.stats.mediaCount,
+                        storageUsed: this.stats.storageUsed
+                    }));
+                } catch (e) {
+                    console.error('Failed to save gallery:', e);
+                }
+            }
+            
+            updateCameraStatus() {
+                const cameraTile = document.getElementById('cameraTile');
+                const cameraTileText = document.getElementById('cameraTileText');
+                const cameraStatus = document.getElementById('cameraStatusText');
+                const cameraDot = document.getElementById('cameraStatusDot');
+                
+                if (this.camera.isActive) {
+                    cameraTile.className = 'status-tile safe';
+                    cameraTileText.textContent = 'CAMERA ONLINE';
+                    cameraStatus.textContent = 'CAMERA: ACTIVE';
+                    cameraDot.className = 'status-dot safe';
+                } else {
+                    cameraTile.className = 'status-tile warning';
+                    cameraTileText.textContent = 'CAMERA OFFLINE';
+                    cameraStatus.textContent = 'CAMERA: READY';
+                    cameraDot.className = 'status-dot warning';
+                }
+            }
+            
+            updateStats() {
+                document.getElementById('metricCameras').textContent = `${this.stats.activeCameras}/1`;
+                document.getElementById('metricFires').textContent = this.stats.fires;
+                document.getElementById('metricWater').textContent = this.stats.waterActivations;
+                document.getElementById('metricMedia').textContent = this.stats.mediaCount;
+            }
+            
+            startUptimeCounter() {
+                setInterval(() => {
+                    this.systemUptime++;
+                    const hours = Math.floor(this.systemUptime / 3600);
+                    const minutes = Math.floor((this.systemUptime % 3600) / 60);
+                    const seconds = this.systemUptime % 60;
+                    
+                    document.getElementById('metricUptime').textContent = 
+                        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
                 }, 1000);
+            }
+            
+            showNotification(title, message, type = 'info') {
+                const notificationCenter = document.getElementById('notificationCenter');
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                
+                notification.innerHTML = `
+                    <div class="notification-title">
+                        <i class="fas fa-${type === 'critical' ? 'fire' : type === 'warning' ? 'exclamation-triangle' : type === 'media' ? 'camera' : 'info-circle'}"></i>
+                        ${title}
+                    </div>
+                    <div class="notification-message">${message}</div>
+                `;
+                
+                notificationCenter.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateX(100%)';
+                    setTimeout(() => notification.remove(), 300);
+                }, 5000);
+            }
+            
+            addLog(message, type = 'info') {
+                const logContainer = document.getElementById('logContainer');
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${type}`;
+                
+                const time = new Date();
+                const timeStr = time.toLocaleTimeString('en-US', { 
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                
+                logEntry.innerHTML = `
+                    <span class="log-time">${timeStr}</span>
+                    <span class="log-message">${message}</span>
+                `;
+                
+                logContainer.appendChild(logEntry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+                
+                while (logContainer.children.length > 50) {
+                    logContainer.removeChild(logContainer.firstChild);
+                }
+            }
+            
+            clearLogs() {
+                if (confirm('Clear all system logs?')) {
+                    const logContainer = document.getElementById('logContainer');
+                    logContainer.innerHTML = '';
+                    this.addLog('Logs cleared', 'info');
+                }
+            }
+            
+            showLoading(show) {
+                const overlay = document.getElementById('loadingOverlay');
+                overlay.style.display = show ? 'flex' : 'none';
             }
         }
 
-        // Initialize the emergency dashboard
-        const dashboard = new EmergencyDashboard();
+        // Initialize the main app
+        window.app = new APULAApp();
 
         // Make functions globally available
-        window.connectCamera = () => dashboard.connectCamera();
-        window.startRecording = () => dashboard.startRecording();
-        window.captureSnapshot = () => dashboard.captureSnapshot();
-        window.activateWater = () => dashboard.activateWater();
-        window.emergencyStop = () => dashboard.emergencyStop();
-        window.acknowledgeAlert = () => dashboard.acknowledgeAlert();
-        window.simulateFireDetection = () => dashboard.simulateFireDetection();
+        window.connectCamera = () => app.connectCamera();
+        window.startRecording = () => app.startRecording();
+        window.stopRecording = () => app.stopRecording();
+        window.captureSnapshot = () => app.captureSnapshot();
+        window.activateWater = () => app.activateWater();
+        window.emergencyStop = () => app.emergencyStop();
+        window.acknowledgeAlert = () => app.acknowledgeAlert();
+        window.selectCamera = (type) => app.selectCamera(type);
+        window.connectRTSP = () => app.connectRTSP();
 
         // Add fadeOut animation
         const style = document.createElement('style');
