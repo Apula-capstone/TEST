@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>APULA FIRE COMMAND - Emergency Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* === FIRE EMERGENCY THEME === */
+        :root {
+            /* Emergency Color Palette */
+            --emergency-red: #FF2200;
+            --fire-orange: #FF5500;
+            --hazard-yellow: #FFAA00;
+            --rescue-orange: #FF6B35;
+            --water-blue: #00A8FF;
+            --command-blue: #0077FF;
+            --thermal-purple: #9D00FF;
+            --hazmat-green: #00FF88;
+            --night-black: #0A0A0F;
+            --carbon-grey: #1A1A25;
+            --steel-grey: #2A2A35;
+            --aluminum: #E0E0E8;
+            
+            /* Alert Levels */
+            --alert-critical: #FF2200;
+            --alert-high: #FF5500;
+            --alert-medium: #FFAA00;
+            --alert-low: #00A8FF;
+            --alert-normal: #00FF88;
+            
+            /* Emergency Gradients */
+            --bg-gradient: linear-gradient(135deg, #0A0A0F 0%, #1A0A15 30%, #0A0A1A 70%, #0A151A 100%);
+            --card-gradient: linear-gradient(165deg, rgba(26, 26, 37, 0.95) 0%, rgba(42, 26, 37, 0.9) 100%);
+            --header-gradient: linear-gradient(90deg, 
+                rgba(255, 34, 0, 0.9) 0%, 
+                rgba(255, 85, 0, 0.9) 25%, 
+                rgba(255, 170, 0, 0.8) 50%, 
+                rgba(255, 107, 53, 0.9) 75%, 
+                rgba(255, 34, 0, 0.9) 100%);
+            
+            /* Emergency Effects */
+            --glow-critical: 0 0 30px rgba(255, 34, 0, 0.7);
+            --glow-warning: 0 0 25px rgba(255, 170, 0, 0.6);
+            --glow-safe: 0 0 20px rgba(0, 255, 136, 0.5);
+            --glow-water: 0 0 20px rgba(0, 168, 255, 0.6);
+            --shadow-deep: 0 10px 30px rgba(0, 0, 0, 0.7);
+            
+            /* Tactical Elements */
+            --border-tactical: 2px solid rgba(255, 85, 0, 0.3);
+            --border-alert: 2px solid rgba(255, 34, 0, 0.6);
+            --border-safe: 2px solid rgba(0, 255, 136, 0.4);
+            --border-radius-tactical: 12px;
+            --border-radius-critical: 8px;
+            
+            /* Spacing */
+            --spacing-tight: 8px;
+            --spacing-base: 12px;
+            --spacing-wide: 16px;
+            --spacing-xwide: 24px;
+            --spacing-ultra: 32px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--aluminum);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* Emergency Background Pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 15% 25%, rgba(255, 34, 0, 0.03) 0%, transparent 40%),
+                radial-gradient(circle at 85% 75%, rgba(0, 168, 255, 0.03) 0%, transparent 40%),
+                linear-gradient(45deg, transparent 48%, rgba(255, 85, 0, 0.02) 50%, transparent 52%),
+                linear-gradient(-45deg, transparent 48%, rgba(255, 170, 0, 0.02) 50%, transparent 52%);
+            background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+            pointer-events: none;
+            z-index: -2;
+        }
+
+        /* Emergency Grid Overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 85, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 85, 0, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Custom Scrollbar - Emergency Theme */
+        ::-webkit-scrollbar {
+            width: 10px;
+            background: var(--carbon-grey);
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(26, 26, 37, 0.8);
+            border-radius: 4px;
+            border: 1px solid rgba(255, 85, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--fire-orange), var(--emergency-red));
+            border-radius: 4px;
+            border: 2px solid rgba(26, 26, 37, 0.8);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, var(--emergency-red), var(--fire-orange));
+            box-shadow: var(--glow-critical);
+        }
+
+        /* === EMERGENCY HEADER === */
+        .emergency-header {
+            background: var(--header-gradient);
+            padding: var(--spacing-wide);
+            margin-bottom: var(--spacing-xwide);
+            position: relative;
+            overflow: hidden;
+            border-bottom: 3px solid var(--emergency-red);
+            box-shadow: var(--glow-critical), var(--shadow-deep);
+        }
+
+        .emergency-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.1), 
+                transparent);
+            animation: emergencyScan 3s linear infinite;
+        }
+
+        @keyframes emergencyScan {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-wide);
+        }
+
+        .emergency-logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: white;
+            text-shadow: 
+                0 0 15px rgba(255, 34, 0, 0.8),
+                0 0 30px rgba(255, 34, 0, 0.5),
+                2px 2px 4px rgba(0, 0, 0, 0.8);
+            letter-spacing: 3px;
+            background: linear-gradient(45deg, #FFFFFF, #FFD700, #FFFFFF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+        }
+
+        .emergency-logo::after {
+            content: 'FIRE COMMAND';
+            position: absolute;
+            top: 100%;
+            left: 0;
+            font-size: 0.8rem;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--hazard-yellow);
+            text-shadow: 0 0 10px rgba(255, 170, 0, 0.7);
+        }
+
+        .emergency-icon {
+            font-size: 3.5rem;
+            color: white;
+            filter: drop-shadow(0 0 15px rgba(255, 34, 0, 0.8));
+            animation: iconPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(5deg); }
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-wide);
+            background: rgba(26, 26, 37, 0.8);
+            padding: var(--spacing-base);
+            border-radius: var(--border-radius-tactical);
+            border: var(--border-tactical);
+            backdrop-filter: blur(10px);
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-dot.critical {
+            background: var(--alert-critical);
+            box-shadow: var(--glow-critical);
+            animation: pulseCritical 1s infinite;
+        }
+
+        @keyframes pulseCritical {
+            0%, 100% { 
+                box-shadow: 0 0 0 0 rgba(255, 34, 0, 0.7),
+                            var(--glow-critical);
+            }
+            70% { 
+                box-shadow: 0 0 0 10px rgba(255, 34, 0, 0),
+                            var(--glow-critical);
+            }
+        }
+
+        .status-dot.warning { background: var(--alert-high); }
+        .status-dot.safe { background: var(--alert-normal); }
+
+        /* === TACTICAL DASHBOARD GRID === */
+        .tactical-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: var(--spacing-xwide);
+            padding: var(--spacing-wide);
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        /* EMERGENCY STATUS PANEL */
+        .status-panel {
+            background: var(--card-gradient);
+            border-radius: var(--border-radius-tactical);
+            padding: var(--spacing-xwide);
+            border: var(--border-tactical);
+            box-shadow: var(--shadow-deep);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .status-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, 
+                var(--emergency-red),
+                var(--fire-orange),
+                var(--hazard-yellow));
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-base);
+            margin-bottom: var(--spacing-xwide);
+            padding-bottom: var(--spacing-base);
+            border-bottom: 1px solid rgba(255, 85, 0, 0.3);
+        }
+
+        .panel-icon {
+            font-size: 1.8rem;
+            color: var(--fire-orange);
+            background: rgba(255, 85, 0, 0.1);
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 85, 0, 0.3);
+        }
+
+        .panel-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--aluminum);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* STATUS GRID */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: var(--spacing-base);
+        }
+
+        .status-tile {
+            background: rgba(42, 42, 53, 0.8);
+            border-radius: var(--border-radius-critical);
+            padding: var(--spacing-wide);
+            border: 2px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .status-tile:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-deep);
+        }
+
+        .status-tile.critical {
+            border-color: var(--alert-critical);
+            background: linear-gradient(135deg, 
+                rgba(58, 10, 10, 0.9),
+                rgba(42, 10, 10, 0.9));
+            animation: alertCritical 2s infinite;
+        }
+
+        @keyframes alertCritical {
+            0%, 100% { 
+                box-shadow: inset 0 0 30px rgba(255, 34, 0, 0.3),
+                            0 0 20px rgba(255, 34, 0, 0.5);
+            }
+            50% { 
+                box-shadow: inset 0 0 40px rgba(255, 34, 0, 0.4),
+                            0 0 30px rgba(255, 34, 0, 0.7);
+            }
+        }
+
+        .status-tile.warning {
+            border-color: var(--alert-high);
+            background: linear-gradient(135deg, 
+                rgba(58, 38, 10, 0.9),
+                rgba(42, 28, 10, 0.9));
+        }
+
+        .status-tile.safe {
+            border-color: var(--alert-normal);
+            background: linear-gradient(135deg, 
+                rgba(10, 58, 38, 0.9),
+                rgba(10, 42, 28, 0.9));
+        }
+
+        .tile-icon {
+            font-size: 2.5rem;
+            margin-bottom: var(--spacing-base);
+            filter: drop-shadow(0 0 8px currentColor);
+        }
+
+        .status-tile.critical .tile-icon {
+            color: var(--emergency-red);
+            animation: fireBlaze 1.5s infinite;
+        }
+
+        @keyframes fireBlaze {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.1) rotate(-5deg); }
+            75% { transform: scale(1.1) rotate(5deg); }
+        }
+
+        .tile-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tile-subtitle {
+            font-size: 0.9rem;
+            text-align: center;
+            opacity: 0.8;
+            color: var(--aluminum);
+        }
+
+        /* === SURVEILLANCE PANEL === */
+        .surveillance-panel {
+            grid-column: span 2;
+            background: var(--card-gradient);
+            border-radius: var(--border-radius-tactical);
+            padding: var(--spacing-xwide);
+            border: var(--border-tactical);
+            box-shadow: var(--shadow-deep);
+        }
+
+        .camera-feed {
+            width: 100%;
+            height: 400px;
+            background: #000;
+            border-radius: var(--border-radius-critical);
+            overflow: hidden;
+            position: relative;
+            border: 3px solid rgba(255, 85, 0, 0.4);
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
+        }
+
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, 
+                rgba(26, 26, 37, 0.9) 25%, 
+                rgba(42, 26, 37, 0.9) 25%, 
+                rgba(42, 26, 37, 0.9) 50%, 
+                rgba(26, 26, 37, 0.9) 50%, 
+                rgba(26, 26, 37, 0.9) 75%, 
+                rgba(42, 26, 37, 0.9) 75%);
+            background-size: 40px 40px;
+            animation: scanMove 4s linear infinite;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes scanMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 40px 40px; }
+        }
+
+        .camera-label {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(255, 34, 0, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: var(--glow-critical);
+        }
+
+        /* CONTROL PANEL */
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: var(--spacing-base);
+            margin-top: var(--spacing-xwide);
+        }
+
+        .control-button {
+            background: linear-gradient(135deg, 
+                rgba(255, 85, 0, 0.9),
+                rgba(255, 34, 0, 0.9));
+            border: none;
+            border-radius: var(--border-radius-critical);
+            padding: var(--spacing-wide);
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(255, 34, 0, 0.3);
+            min-height: 90px;
+            justify-content: center;
+        }
+
+        .control-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(255, 34, 0, 0.5);
+            background: linear-gradient(135deg, 
+                rgba(255, 107, 53, 0.9),
+                rgba(255, 85, 0, 0.9));
+        }
+
+        .control-button:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .control-button.emergency {
+            background: linear-gradient(135deg, 
+                var(--emergency-red),
+                #CC0000);
+        }
+
+        .control-button.water {
+            background: linear-gradient(135deg, 
+                var(--water-blue),
+                var(--command-blue));
+        }
+
+        .control-button.water:hover {
+            background: linear-gradient(135deg, 
+                #00C8FF,
+                var(--water-blue));
+            box-shadow: 0 8px 25px rgba(0, 168, 255, 0.5);
+        }
+
+        /* === SYSTEMS PANEL === */
+        .systems-panel {
+            background: var(--card-gradient);
+            border-radius: var(--border-radius-tactical);
+            padding: var(--spacing-xwide);
+            border: var(--border-tactical);
+            box-shadow: var(--shadow-deep);
+        }
+
+        .system-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-base);
+        }
+
+        .metric-card {
+            background: rgba(42, 42, 53, 0.8);
+            border-radius: var(--border-radius-critical);
+            padding: var(--spacing-wide);
+            border: 1px solid rgba(255, 85, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            border-color: var(--fire-orange);
+            box-shadow: 0 5px 20px rgba(255, 85, 0, 0.2);
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            color: var(--aluminum);
+            opacity: 0.8;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--aluminum);
+            margin-bottom: 4px;
+        }
+
+        .metric-value.critical {
+            color: var(--emergency-red);
+            text-shadow: 0 0 10px rgba(255, 34, 0, 0.5);
+        }
+
+        .metric-value.warning {
+            color: var(--hazard-yellow);
+        }
+
+        .metric-value.safe {
+            color: var(--alert-normal);
+        }
+
+        .metric-trend {
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .metric-trend.up {
+            color: var(--alert-normal);
+        }
+
+        .metric-trend.down {
+            color: var(--emergency-red);
+        }
+
+        /* === EMERGENCY ALERT MODAL === */
+        .emergency-alert {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(20px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: alertFadeIn 0.3s ease;
+        }
+
+        @keyframes alertFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .alert-container {
+            background: linear-gradient(135deg, 
+                rgba(58, 10, 10, 0.95),
+                rgba(42, 10, 10, 0.95));
+            border: 4px solid var(--emergency-red);
+            border-radius: var(--border-radius-tactical);
+            padding: var(--spacing-ultra);
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: alertPulse 2s infinite;
+            box-shadow: 
+                0 0 60px rgba(255, 34, 0, 0.8),
+                inset 0 0 30px rgba(255, 34, 0, 0.3);
+        }
+
+        @keyframes alertPulse {
+            0%, 100% { 
+                box-shadow: 
+                    0 0 60px rgba(255, 34, 0, 0.8),
+                    inset 0 0 30px rgba(255, 34, 0, 0.3);
+                border-color: var(--emergency-red);
+            }
+            50% { 
+                box-shadow: 
+                    0 0 100px rgba(255, 34, 0, 1),
+                    inset 0 0 50px rgba(255, 34, 0, 0.5);
+                border-color: #FF5500;
+            }
+        }
+
+        .alert-icon {
+            font-size: 5rem;
+            color: var(--emergency-red);
+            text-align: center;
+            margin-bottom: var(--spacing-xwide);
+            animation: alertIcon 1s infinite;
+            filter: drop-shadow(0 0 20px rgba(255, 34, 0, 0.8));
+        }
+
+        @keyframes alertIcon {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .alert-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            color: white;
+            text-align: center;
+            margin-bottom: var(--spacing-wide);
+            text-shadow: 
+                0 0 10px rgba(255, 34, 0, 0.8),
+                0 0 20px rgba(255, 34, 0, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .alert-content {
+            background: rgba(0, 0, 0, 0.6);
+            padding: var(--spacing-xwide);
+            border-radius: var(--border-radius-critical);
+            border: 2px solid rgba(255, 85, 0, 0.5);
+            margin: var(--spacing-xwide) 0;
+        }
+
+        .alert-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-base);
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-base);
+        }
+
+        .info-icon {
+            color: var(--hazard-yellow);
+            font-size: 1.2rem;
+            width: 24px;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: var(--aluminum);
+            min-width: 100px;
+        }
+
+        .info-value {
+            color: white;
+            font-weight: 700;
+        }
+
+        .alert-actions {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--spacing-base);
+            margin-top: var(--spacing-xwide);
+        }
+
+        .alert-button {
+            background: linear-gradient(135deg, 
+                var(--emergency-red),
+                #CC0000);
+            border: none;
+            border-radius: var(--border-radius-critical);
+            padding: var(--spacing-xwide);
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 6px 20px rgba(255, 34, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-base);
+        }
+
+        .alert-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(255, 34, 0, 0.7);
+        }
+
+        /* === NOTIFICATION SYSTEM === */
+        .notification-center {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+            width: calc(100% - 40px);
+        }
+
+        .notification {
+            background: rgba(26, 26, 37, 0.95);
+            border-left: 4px solid var(--fire-orange);
+            padding: var(--spacing-wide);
+            margin-bottom: var(--spacing-base);
+            border-radius: var(--border-radius-critical);
+            box-shadow: var(--shadow-deep);
+            transform: translateX(100%);
+            animation: notificationSlide 0.3s ease forwards;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 85, 0, 0.2);
+        }
+
+        @keyframes notificationSlide {
+            to { transform: translateX(0); }
+        }
+
+        .notification.critical {
+            border-left-color: var(--emergency-red);
+            background: rgba(58, 10, 10, 0.95);
+        }
+
+        .notification.warning {
+            border-left-color: var(--hazard-yellow);
+            background: rgba(58, 38, 10, 0.95);
+        }
+
+        .notification.safe {
+            border-left-color: var(--alert-normal);
+            background: rgba(10, 58, 38, 0.95);
+        }
+
+        .notification-title {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            color: var(--aluminum);
+            font-size: 1rem;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .notification-message {
+            color: var(--aluminum);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* === RESPONSIVE DESIGN === */
+        @media (max-width: 1200px) {
+            .tactical-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .surveillance-panel {
+                grid-column: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: var(--spacing-wide);
+            }
+            
+            .status-indicator {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .emergency-logo {
+                font-size: 2.2rem;
+            }
+            
+            .camera-feed {
+                height: 300px;
+            }
+            
+            .control-panel {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .system-metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .tactical-grid {
+                padding: var(--spacing-base);
+                gap: var(--spacing-wide);
+            }
+            
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            .emergency-logo {
+                font-size: 1.8rem;
+                letter-spacing: 2px;
+            }
+            
+            .camera-feed {
+                height: 250px;
+            }
+            
+            .alert-container {
+                padding: var(--spacing-xwide);
+            }
+            
+            .alert-title {
+                font-size: 2rem;
+            }
+        }
+
+        /* === UTILITY CLASSES === */
+        .text-center { text-align: center; }
+        .mt-1 { margin-top: var(--spacing-tight); }
+        .mt-2 { margin-top: var(--spacing-base); }
+        .mt-3 { margin-top: var(--spacing-wide); }
+        .mt-4 { margin-top: var(--spacing-xwide); }
+        .mb-1 { margin-bottom: var(--spacing-tight); }
+        .mb-2 { margin-bottom: var(--spacing-base); }
+        .mb-3 { margin-bottom: var(--spacing-wide); }
+        .mb-4 { margin-bottom: var(--spacing-xwide); }
+
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* High Contrast Mode */
+        @media (prefers-contrast: high) {
+            :root {
+                --emergency-red: #FF0000;
+                --fire-orange: #FF5500;
+                --hazard-yellow: #FFFF00;
+                --aluminum: #FFFFFF;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Emergency Alert Modal -->
+    <div id="emergencyAlert" class="emergency-alert">
+        <div class="alert-container">
+            <div class="alert-icon">
+                <i class="fas fa-fire"></i>
+            </div>
+            <h1 class="alert-title">FIRE EMERGENCY</h1>
+            <div class="alert-content">
+                <div class="alert-info">
+                    <div class="info-item">
+                        <i class="fas fa-map-marker-alt info-icon"></i>
+                        <span class="info-label">Location:</span>
+                        <span class="info-value" id="alertLocation">Camera 1 - Main Area</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-fire info-icon"></i>
+                        <span class="info-label">Severity:</span>
+                        <span class="info-value" id="alertSeverity" style="color: var(--emergency-red);">CRITICAL</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-clock info-icon"></i>
+                        <span class="info-label">Time:</span>
+                        <span class="info-value" id="alertTime">00:00:00</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-tint info-icon"></i>
+                        <span class="info-label">Response:</span>
+                        <span class="info-value" style="color: var(--water-blue);">AUTOMATIC ACTIVATION</span>
+                    </div>
+                </div>
+            </div>
+            <div class="alert-actions">
+                <button class="alert-button" onclick="acknowledgeAlert()">
+                    <i class="fas fa-bell-slash"></i>
+                    ACKNOWLEDGE & STOP ALARM
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Center -->
+    <div class="notification-center" id="notificationCenter"></div>
+
+    <!-- Emergency Header -->
+    <div class="emergency-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <i class="fas fa-fire-extinguisher emergency-icon"></i>
+                <h1 class="emergency-logo">APULA</h1>
+            </div>
+            <div class="status-indicator">
+                <div class="status-item">
+                    <span class="status-dot critical" id="systemStatusDot"></span>
+                    <span class="status-text" id="systemStatusText">SYSTEM: CRITICAL</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-dot warning" id="arduinoStatusDot"></span>
+                    <span class="status-text" id="arduinoStatusText">ARDUINO: OFFLINE</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-dot safe" id="cameraStatusDot"></span>
+                    <span class="status-text" id="cameraStatusText">CAMERA: READY</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tactical Dashboard Grid -->
+    <div class="tactical-grid">
+        <!-- Emergency Status Panel -->
+        <div class="status-panel">
+            <div class="panel-header">
+                <div class="panel-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h2 class="panel-title">System Status</h2>
+            </div>
+            <div class="status-grid">
+                <div class="status-tile" id="fireStatusTile">
+                    <i class="fas fa-fire tile-icon"></i>
+                    <div class="tile-title" id="fireStatusText">NO FIRE</div>
+                    <div class="tile-subtitle">System Normal</div>
+                </div>
+                
+                <div class="status-tile" id="waterStatusTile">
+                    <i class="fas fa-tint tile-icon"></i>
+                    <div class="tile-title" id="waterStatusText">WATER READY</div>
+                    <div class="tile-subtitle">Pressure: 80%</div>
+                </div>
+                
+                <div class="status-tile" id="arduinoTile">
+                    <i class="fas fa-microchip tile-icon"></i>
+                    <div class="tile-title" id="arduinoTileText">ARDUINO</div>
+                    <div class="tile-subtitle">Click to Connect</div>
+                </div>
+                
+                <div class="status-tile" id="cameraTile">
+                    <i class="fas fa-video tile-icon"></i>
+                    <div class="tile-title" id="cameraTileText">CAMERA</div>
+                    <div class="tile-subtitle">Single Feed</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Surveillance Panel -->
+        <div class="surveillance-panel">
+            <div class="panel-header">
+                <div class="panel-icon">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <h2 class="panel-title">Live Surveillance</h2>
+            </div>
+            <div class="camera-feed">
+                <div class="camera-label">CAMERA 1 - MAIN AREA</div>
+                <div class="camera-overlay">
+                    <i class="fas fa-camera" style="font-size: 3rem; color: var(--steel-grey); margin-bottom: 20px;"></i>
+                    <p style="color: var(--steel-grey); margin-bottom: 20px;">SURVEILLANCE FEED OFFLINE</p>
+                    <button class="control-button" onclick="connectCamera()">
+                        <i class="fas fa-plug"></i>
+                        ACTIVATE CAMERA
+                    </button>
+                </div>
+            </div>
+            <div class="control-panel">
+                <button class="control-button" onclick="startRecording()">
+                    <i class="fas fa-record-vinyl"></i>
+                    RECORD
+                </button>
+                <button class="control-button" onclick="captureSnapshot()">
+                    <i class="fas fa-camera"></i>
+                    SNAPSHOT
+                </button>
+                <button class="control-button water" onclick="activateWater()">
+                    <i class="fas fa-tint"></i>
+                    WATER ON
+                </button>
+                <button class="control-button emergency" onclick="emergencyStop()">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    EMERGENCY
+                </button>
+            </div>
+        </div>
+
+        <!-- Systems Panel -->
+        <div class="systems-panel">
+            <div class="panel-header">
+                <div class="panel-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h2 class="panel-title">System Metrics</h2>
+            </div>
+            <div class="system-metrics">
+                <div class="metric-card">
+                    <div class="metric-label">Active Cameras</div>
+                    <div class="metric-value" id="metricCameras">0/1</div>
+                    <div class="metric-trend down">
+                        <i class="fas fa-arrow-down"></i>
+                        <span>OFFLINE</span>
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-label">Fire Detections</div>
+                    <div class="metric-value safe" id="metricFires">0</div>
+                    <div class="metric-trend up">
+                        <i class="fas fa-check"></i>
+                        <span>NORMAL</span>
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-label">Water Activations</div>
+                    <div class="metric-value safe" id="metricWater">0</div>
+                    <div class="metric-trend up">
+                        <i class="fas fa-check"></i>
+                        <span>READY</span>
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-label">System Uptime</div>
+                    <div class="metric-value" id="metricUptime">00:00:00</div>
+                    <div class="metric-trend up">
+                        <i class="fas fa-clock"></i>
+                        <span>ACTIVE</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio for Alarms -->
+    <audio id="fireAlarmSound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-emergency-alert-alarm-1007.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // === EMERGENCY DASHBOARD SYSTEM ===
+        
+        class EmergencyDashboard {
+            constructor() {
+                this.cameraActive = false;
+                this.waterActive = false;
+                this.isRecording = false;
+                this.fireDetected = false;
+                this.arduinoConnected = false;
+                this.systemUptime = 0;
+                this.stats = {
+                    cameras: 0,
+                    fires: 0,
+                    waterActivations: 0,
+                    mediaFiles: 0
+                };
+                
+                this.init();
+            }
+            
+            init() {
+                console.log('Emergency Dashboard Initialized');
+                this.bindEvents();
+                this.startUptimeCounter();
+                this.showNotification('SYSTEM ONLINE', 'Fire Command Dashboard activated', 'safe');
+                this.updateStatusIndicators();
+                
+                // Test fire alarm sound
+                this.testAlarmSound();
+            }
+            
+            bindEvents() {
+                // Bind Arduino tile click
+                document.getElementById('arduinoTile').addEventListener('click', () => {
+                    this.connectArduino();
+                });
+                
+                // Bind camera tile click
+                document.getElementById('cameraTile').addEventListener('click', () => {
+                    this.connectCamera();
+                });
+                
+                // Bind fire status tile click for testing
+                document.getElementById('fireStatusTile').addEventListener('click', () => {
+                    this.simulateFireDetection();
+                });
+            }
+            
+            startUptimeCounter() {
+                setInterval(() => {
+                    this.systemUptime++;
+                    const hours = Math.floor(this.systemUptime / 3600);
+                    const minutes = Math.floor((this.systemUptime % 3600) / 60);
+                    const seconds = this.systemUptime % 60;
+                    
+                    document.getElementById('metricUptime').textContent = 
+                        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+            
+            updateStatusIndicators() {
+                const systemDot = document.getElementById('systemStatusDot');
+                const systemText = document.getElementById('systemStatusText');
+                
+                if (this.fireDetected) {
+                    systemDot.className = 'status-dot critical';
+                    systemText.textContent = 'SYSTEM: CRITICAL';
+                    systemText.style.color = 'var(--emergency-red)';
+                } else if (!this.cameraActive) {
+                    systemDot.className = 'status-dot warning';
+                    systemText.textContent = 'SYSTEM: WARNING';
+                    systemText.style.color = 'var(--hazard-yellow)';
+                } else {
+                    systemDot.className = 'status-dot safe';
+                    systemText.textContent = 'SYSTEM: NORMAL';
+                    systemText.style.color = 'var(--alert-normal)';
+                }
+                
+                // Update Arduino status
+                const arduinoDot = document.getElementById('arduinoStatusDot');
+                const arduinoText = document.getElementById('arduinoStatusText');
+                const arduinoTile = document.getElementById('arduinoTile');
+                const arduinoTileText = document.getElementById('arduinoTileText');
+                
+                if (this.arduinoConnected) {
+                    arduinoDot.className = 'status-dot safe';
+                    arduinoText.textContent = 'ARDUINO: CONNECTED';
+                    arduinoText.style.color = 'var(--alert-normal)';
+                    arduinoTile.className = 'status-tile safe';
+                    arduinoTileText.textContent = 'ARDUINO ONLINE';
+                } else {
+                    arduinoDot.className = 'status-dot warning';
+                    arduinoText.textContent = 'ARDUINO: OFFLINE';
+                    arduinoText.style.color = 'var(--hazard-yellow)';
+                    arduinoTile.className = 'status-tile warning';
+                    arduinoTileText.textContent = 'ARDUINO OFFLINE';
+                }
+                
+                // Update camera status
+                const cameraDot = document.getElementById('cameraStatusDot');
+                const cameraText = document.getElementById('cameraStatusText');
+                const cameraTile = document.getElementById('cameraTile');
+                const cameraTileText = document.getElementById('cameraTileText');
+                
+                if (this.cameraActive) {
+                    cameraDot.className = 'status-dot safe';
+                    cameraText.textContent = 'CAMERA: ACTIVE';
+                    cameraText.style.color = 'var(--alert-normal)';
+                    cameraTile.className = 'status-tile safe';
+                    cameraTileText.textContent = 'CAMERA ONLINE';
+                    document.getElementById('metricCameras').textContent = '1/1';
+                } else {
+                    cameraDot.className = 'status-dot warning';
+                    cameraText.textContent = 'CAMERA: READY';
+                    cameraText.style.color = 'var(--hazard-yellow)';
+                    cameraTile.className = 'status-tile warning';
+                    cameraTileText.textContent = 'CAMERA OFFLINE';
+                    document.getElementById('metricCameras').textContent = '0/1';
+                }
+            }
+            
+            showNotification(title, message, type = 'info') {
+                const notificationCenter = document.getElementById('notificationCenter');
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                
+                notification.innerHTML = `
+                    <div class="notification-title">
+                        <i class="fas fa-${type === 'critical' ? 'fire' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                        ${title}
+                    </div>
+                    <div class="notification-message">${message}</div>
+                `;
+                
+                notificationCenter.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateX(100%)';
+                    setTimeout(() => notification.remove(), 300);
+                }, 5000);
+            }
+            
+            simulateFireDetection() {
+                if (this.fireDetected) return;
+                
+                this.fireDetected = true;
+                this.stats.fires++;
+                
+                // Update UI
+                const fireTile = document.getElementById('fireStatusTile');
+                const fireText = document.getElementById('fireStatusText');
+                fireTile.className = 'status-tile critical';
+                fireText.textContent = 'FIRE DETECTED!';
+                fireText.style.color = 'var(--emergency-red)';
+                
+                document.getElementById('metricFires').textContent = this.stats.fires;
+                document.getElementById('metricFires').className = 'metric-value critical';
+                
+                // Show emergency alert
+                this.showEmergencyAlert();
+                
+                // Play alarm sound
+                this.playAlarmSound();
+                
+                this.showNotification('FIRE EMERGENCY', 'Fire detected in main area!', 'critical');
+                this.updateStatusIndicators();
+                
+                // Auto-activate water after 2 seconds
+                setTimeout(() => {
+                    if (this.fireDetected) {
+                        this.activateWater();
+                    }
+                }, 2000);
+            }
+            
+            showEmergencyAlert() {
+                const alertModal = document.getElementById('emergencyAlert');
+                const alertTime = document.getElementById('alertTime');
+                
+                const now = new Date();
+                alertTime.textContent = now.toLocaleTimeString('en-US', {
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                
+                alertModal.style.display = 'flex';
+                
+                // Auto-close after 30 seconds if not acknowledged
+                this.autoAlertTimeout = setTimeout(() => {
+                    if (alertModal.style.display === 'flex') {
+                        this.acknowledgeAlert();
+                    }
+                }, 30000);
+            }
+            
+            acknowledgeAlert() {
+                const alertModal = document.getElementById('emergencyAlert');
+                alertModal.style.display = 'none';
+                
+                this.stopAlarmSound();
+                this.fireDetected = false;
+                
+                // Reset fire status
+                const fireTile = document.getElementById('fireStatusTile');
+                const fireText = document.getElementById('fireStatusText');
+                fireTile.className = 'status-tile safe';
+                fireText.textContent = 'NO FIRE';
+                fireText.style.color = '';
+                
+                this.showNotification('ALERT ACKNOWLEDGED', 'Fire alert cleared', 'safe');
+                this.updateStatusIndicators();
+                
+                if (this.autoAlertTimeout) {
+                    clearTimeout(this.autoAlertTimeout);
+                }
+            }
+            
+            connectArduino() {
+                if (this.arduinoConnected) {
+                    this.showNotification('ARDUINO', 'Already connected', 'safe');
+                    return;
+                }
+                
+                this.showNotification('ARDUINO', 'Connecting to Arduino...', 'warning');
+                
+                // Simulate connection delay
+                setTimeout(() => {
+                    this.arduinoConnected = true;
+                    this.showNotification('ARDUINO CONNECTED', 'Fire sensors active', 'safe');
+                    this.updateStatusIndicators();
+                }, 1500);
+            }
+            
+            connectCamera() {
+                if (this.cameraActive) {
+                    this.showNotification('CAMERA', 'Camera already active', 'safe');
+                    return;
+                }
+                
+                this.showNotification('CAMERA', 'Activating surveillance feed...', 'warning');
+                
+                // Simulate camera activation
+                setTimeout(() => {
+                    this.cameraActive = true;
+                    this.stats.cameras = 1;
+                    
+                    const cameraOverlay = document.querySelector('.camera-overlay');
+                    cameraOverlay.style.opacity = '0';
+                    setTimeout(() => {
+                        cameraOverlay.style.display = 'none';
+                    }, 300);
+                    
+                    this.showNotification('SURVEILLANCE ACTIVE', 'Camera feed online', 'safe');
+                    this.updateStatusIndicators();
+                }, 2000);
+            }
+            
+            startRecording() {
+                if (!this.cameraActive) {
+                    this.showNotification('RECORDING', 'Camera not connected', 'warning');
+                    return;
+                }
+                
+                if (this.isRecording) {
+                    this.showNotification('RECORDING', 'Already recording', 'warning');
+                    return;
+                }
+                
+                this.isRecording = true;
+                this.showNotification('RECORDING STARTED', 'Recording surveillance feed', 'safe');
+                
+                // Simulate recording indicator
+                const recordButton = document.querySelector('.control-button:nth-child(1)');
+                recordButton.innerHTML = '<i class="fas fa-circle"></i> RECORDING';
+                recordButton.style.background = 'linear-gradient(135deg, var(--emergency-red), #CC0000)';
+            }
+            
+            captureSnapshot() {
+                if (!this.cameraActive) {
+                    this.showNotification('SNAPSHOT', 'Camera not connected', 'warning');
+                    return;
+                }
+                
+                this.showNotification('SNAPSHOT CAPTURED', 'Image saved to gallery', 'safe');
+                
+                // Visual feedback
+                const cameraFeed = document.querySelector('.camera-feed');
+                cameraFeed.style.boxShadow = 'inset 0 0 100px rgba(255, 255, 255, 0.5)';
+                setTimeout(() => {
+                    cameraFeed.style.boxShadow = 'inset 0 0 30px rgba(0, 0, 0, 0.8)';
+                }, 300);
+            }
+            
+            activateWater() {
+                if (this.waterActive) {
+                    this.showNotification('WATER SYSTEM', 'Already active', 'warning');
+                    return;
+                }
+                
+                this.waterActive = true;
+                this.stats.waterActivations++;
+                
+                const waterTile = document.getElementById('waterStatusTile');
+                const waterText = document.getElementById('waterStatusText');
+                waterTile.className = 'status-tile safe';
+                waterText.textContent = 'WATER ACTIVE';
+                
+                document.getElementById('metricWater').textContent = this.stats.waterActivations;
+                document.getElementById('metricWater').className = 'metric-value safe';
+                
+                this.showNotification('WATER SYSTEM ACTIVATED', 'Fire suppression active', 'safe');
+                
+                // Visual water effect
+                const waterEffect = document.createElement('div');
+                waterEffect.style.position = 'fixed';
+                waterEffect.style.top = '0';
+                waterEffect.style.left = '0';
+                waterEffect.style.width = '100%';
+                waterEffect.style.height = '100%';
+                waterEffect.style.background = 'radial-gradient(circle, rgba(0,168,255,0.1) 0%, transparent 70%)';
+                waterEffect.style.pointerEvents = 'none';
+                waterEffect.style.zIndex = '9999';
+                waterEffect.style.animation = 'fadeOut 2s forwards';
+                document.body.appendChild(waterEffect);
+                
+                // Auto-stop water after 10 seconds
+                setTimeout(() => {
+                    this.deactivateWater();
+                }, 10000);
+            }
+            
+            deactivateWater() {
+                if (!this.waterActive) return;
+                
+                this.waterActive = false;
+                
+                const waterTile = document.getElementById('waterStatusTile');
+                const waterText = document.getElementById('waterStatusText');
+                waterTile.className = 'status-tile';
+                waterText.textContent = 'WATER READY';
+                
+                this.showNotification('WATER SYSTEM', 'Deactivated', 'info');
+            }
+            
+            emergencyStop() {
+                if (confirm('⚠️ EMERGENCY STOP\n\nActivate emergency shutdown?')) {
+                    this.waterActive = false;
+                    this.isRecording = false;
+                    this.fireDetected = false;
+                    
+                    // Reset all status
+                    const fireTile = document.getElementById('fireStatusTile');
+                    const fireText = document.getElementById('fireStatusText');
+                    fireTile.className = 'status-tile';
+                    fireText.textContent = 'NO FIRE';
+                    
+                    const waterTile = document.getElementById('waterStatusTile');
+                    const waterText = document.getElementById('waterStatusText');
+                    waterTile.className = 'status-tile';
+                    waterText.textContent = 'WATER READY';
+                    
+                    // Reset recording button
+                    const recordButton = document.querySelector('.control-button:nth-child(1)');
+                    recordButton.innerHTML = '<i class="fas fa-record-vinyl"></i> RECORD';
+                    recordButton.style.background = '';
+                    
+                    this.stopAlarmSound();
+                    
+                    this.showNotification('EMERGENCY STOP', 'All systems halted', 'critical');
+                    this.updateStatusIndicators();
+                    
+                    // Re-enable camera after emergency stop
+                    setTimeout(() => {
+                        this.showNotification('SYSTEM RECOVERY', 'Systems resetting...', 'warning');
+                    }, 2000);
+                }
+            }
+            
+            playAlarmSound() {
+                const alarmSound = document.getElementById('fireAlarmSound');
+                alarmSound.currentTime = 0;
+                alarmSound.volume = 0.7;
+                alarmSound.play().catch(e => console.log('Audio play failed:', e));
+            }
+            
+            stopAlarmSound() {
+                const alarmSound = document.getElementById('fireAlarmSound');
+                alarmSound.pause();
+                alarmSound.currentTime = 0;
+            }
+            
+            testAlarmSound() {
+                // Quick test of alarm sound on startup
+                setTimeout(() => {
+                    const alarmSound = document.getElementById('fireAlarmSound');
+                    alarmSound.volume = 0.3;
+                    alarmSound.currentTime = 1;
+                    alarmSound.play().then(() => {
+                        setTimeout(() => alarmSound.pause(), 1000);
+                    }).catch(e => console.log('Test alarm skipped:', e));
+                }, 1000);
+            }
+        }
+
+        // Initialize the emergency dashboard
+        const dashboard = new EmergencyDashboard();
+
+        // Make functions globally available
+        window.connectCamera = () => dashboard.connectCamera();
+        window.startRecording = () => dashboard.startRecording();
+        window.captureSnapshot = () => dashboard.captureSnapshot();
+        window.activateWater = () => dashboard.activateWater();
+        window.emergencyStop = () => dashboard.emergencyStop();
+        window.acknowledgeAlert = () => dashboard.acknowledgeAlert();
+        window.simulateFireDetection = () => dashboard.simulateFireDetection();
+
+        // Add fadeOut animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
