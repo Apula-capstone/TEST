@@ -2853,12 +2853,11 @@
                 this.showNotification('RTSP CONNECTION', 'Connecting to RTSP stream...', 'info');
                 this.addLog(`Attempting to connect RTSP: ${rtspUrl}`, 'info');
                 
-                // Try to create video element for RTSP
                 const videoElement = document.getElementById('cameraFeed');
                 const cameraOverlay = document.getElementById('cameraOverlay');
                 const cameraLabel = document.getElementById('cameraFeedLabel');
+                const container = videoElement.parentElement;
                 
-                // Show loading
                 cameraOverlay.innerHTML = `
                     <i class="fas fa-satellite-dish" style="font-size: 3rem; color: var(--fire-orange); margin-bottom: 20px; animation: iconPulse 2s infinite;"></i>
                     <p style="color: var(--aluminum); margin-bottom: 20px;">CONNECTING TO RTSP STREAM...</p>
@@ -2867,44 +2866,37 @@
                 cameraOverlay.style.display = 'flex';
                 videoElement.style.display = 'none';
                 
-                // Try to play RTSP stream
-                videoElement.src = rtspUrl;
-                videoElement.load();
+                let mjpegImg = document.getElementById('mjpegFeed');
+                if (!mjpegImg) {
+                    mjpegImg = document.createElement('img');
+                    mjpegImg.id = 'mjpegFeed';
+                    mjpegImg.style.width = '100%';
+                    mjpegImg.style.height = '100%';
+                    mjpegImg.style.objectFit = 'cover';
+                    mjpegImg.style.display = 'none';
+                    container.appendChild(mjpegImg);
+                }
                 
-                videoElement.onloadeddata = () => {
-                    console.log('RTSP stream loaded successfully');
-                    videoElement.style.display = 'block';
-                    cameraOverlay.style.display = 'none';
-                    cameraLabel.textContent = 'RTSP STREAM - LIVE';
-                    this.camera.isActive = true;
-                    
-                    this.stats.activeCameras = 1;
-                    this.updateCameraStatus();
-                    this.updateStats();
-                    
-                    this.showNotification('RTSP CONNECTED', 
-                        'RTSP stream connected successfully', 
-                        'safe');
-                    this.addLog('RTSP stream connected', 'info');
-                    
-                    // Enable recording and snapshot buttons
-                    document.getElementById('recordBtn').classList.remove('disabled');
-                    document.getElementById('snapshotBtn').classList.remove('disabled');
-                    
-                    // Update camera tile
-                    const cameraTile = document.getElementById('cameraTile');
-                    const cameraTileText = document.getElementById('cameraTileText');
-                    cameraTile.className = 'status-tile safe';
-                    cameraTileText.textContent = 'RTSP ONLINE';
+                const mjpegUrl = `/rtsp-mjpeg?url=${encodeURIComponent(rtspUrl)}`;
+                let firstFrame = true;
+                mjpegImg.onload = () => {
+                    if (firstFrame) {
+                        firstFrame = false;
+                        mjpegImg.style.display = 'block';
+                        cameraOverlay.style.display = 'none';
+                        cameraLabel.textContent = 'RTSP STREAM - LIVE (MJPEG)';
+                        this.camera.isActive = true;
+                        this.camera.currentType = 'rtsp';
+                        this.stats.activeCameras = 1;
+                        this.updateCameraStatus();
+                        this.updateStats();
+                        this.showNotification('RTSP CONNECTED', 'RTSP stream connected via MJPEG proxy', 'safe');
+                        this.addLog('RTSP stream connected via MJPEG proxy', 'info');
+                        document.getElementById('snapshotBtn').classList.remove('disabled');
+                        document.getElementById('recordBtn').classList.add('disabled');
+                    }
                 };
-                
-                videoElement.onerror = (error) => {
-                    console.error('RTSP stream error:', error);
-                    this.showNotification('RTSP ERROR', 
-                        'Failed to connect to RTSP stream. Please check the URL and server.', 
-                        'warning');
-                    this.addLog('RTSP connection failed', 'info');
-                    
+                mjpegImg.onerror = () => {
                     cameraOverlay.innerHTML = `
                         <i class="fas fa-satellite-dish" style="font-size: 3rem; color: var(--emergency-red); margin-bottom: 20px;"></i>
                         <p style="color: var(--aluminum); margin-bottom: 20px; text-align: center;">
@@ -2916,7 +2908,10 @@
                             RETRY RTSP CONNECTION
                         </button>
                     `;
+                    this.addLog('RTSP connection failed', 'info');
+                    this.showNotification('RTSP ERROR', 'Failed to connect to RTSP stream', 'warning');
                 };
+                mjpegImg.src = mjpegUrl;
             }
             
             connectWiFiCamera() {
