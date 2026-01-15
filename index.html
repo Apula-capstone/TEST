@@ -1915,8 +1915,8 @@
 
     <!-- Audio for Fire Alarm - Using a more reliable firetruck siren -->
     <audio id="fireAlarmSound" preload="auto" loop>
+        <source src="https://www.soundjay.com/ambient/sounds/fire-truck-siren-01.mp3" type="audio/mpeg">
         <source src="https://assets.mixkit.co/sfx/preview/mixkit-emergency-air-siren-1646.mp3" type="audio/mpeg">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-warning-alarm-buzzer-991.mp3" type="audio/mpeg">
     </audio>
 
     <!-- Fallback Audio Context for siren generation -->
@@ -3563,31 +3563,23 @@
             }
             
             playAlarmSound() {
-                // Respect silence window after acknowledge
                 if (Date.now() < this.alarmSilencedUntil) {
                     return;
                 }
-                console.log('🚒 PLAYING LOUD NON-STOP FIRETRUCK ALARM');
-                this.alarmPlaying = true;
-                
-                // Use the FireTruckSiren class for loud non-stop alarm
-                if (window.fireTruckSiren) {
-                    window.fireTruckSiren.start();
-                } else {
-                    // Fallback to MP3 alarm
-                    const alarmSound = document.getElementById('fireAlarmSound');
-                    alarmSound.currentTime = 0;
-                    alarmSound.volume = 0.9;
-                    alarmSound.loop = true;
-                    
-                    const playPromise = alarmSound.play();
-                    if (playPromise !== undefined) {
-                        playPromise.catch(e => {
-                            console.log('Audio play failed:', e);
-                            this.fallbackAlarm();
-                        });
-                    }
+                const alarmSound = document.getElementById('fireAlarmSound');
+                if (!alarmSound) {
+                    return;
                 }
+                try {
+                    this.alarmPlaying = true;
+                    alarmSound.currentTime = 0;
+                    alarmSound.volume = 1.0;
+                    alarmSound.loop = true;
+                    const playPromise = alarmSound.play();
+                    if (playPromise && typeof playPromise.then === 'function') {
+                        playPromise.catch(() => {});
+                    }
+                } catch (_) {}
             }
             
             fallbackAlarm() {
