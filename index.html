@@ -1664,23 +1664,23 @@
                 TRIGGER TEST FIRE ALERT
             </button>
 
-            <!-- Camera Options -->
+            <!-- Camera Options - UPDATED WITH ALL OPTIONS -->
             <div class="camera-options">
-                <button class="camera-option-btn" onclick="app.selectCamera('webcam')" id="webcamBtn">
-                    <i class="fas fa-camera"></i>
-                    Webcam
-                </button>
-                <button class="camera-option-btn" onclick="app.selectCamera('rtsp')" id="rtspBtn">
-                    <i class="fas fa-satellite-dish"></i>
-                    RTSP
+                <button class="camera-option-btn" onclick="app.selectCamera('wifi')" id="wifiBtn">
+                    <i class="fas fa-wifi"></i>
+                    Wi-Fi
                 </button>
                 <button class="camera-option-btn" onclick="app.selectCamera('bluetooth')" id="bluetoothBtn">
                     <i class="fas fa-bluetooth"></i>
                     Bluetooth
                 </button>
-                <button class="camera-option-btn" onclick="app.selectCamera('ip')" id="ipBtn">
-                    <i class="fas fa-wifi"></i>
-                    IP Camera
+                <button class="camera-option-btn" onclick="app.selectCamera('rtsp')" id="rtspBtn">
+                    <i class="fas fa-satellite-dish"></i>
+                    RTSP
+                </button>
+                <button class="camera-option-btn" onclick="app.selectCamera('webcam')" id="webcamBtn">
+                    <i class="fas fa-camera"></i>
+                    Webcam
                 </button>
             </div>
 
@@ -1693,6 +1693,37 @@
                 <button class="control-button" onclick="app.connectRTSP()" style="width: 100%; margin-top: var(--spacing-base);">
                     <i class="fas fa-plug"></i>
                     Connect RTSP Stream
+                </button>
+            </div>
+
+            <!-- Wi-Fi Camera Input (Hidden by default) -->
+            <div id="wifiInput" style="display: none; margin-top: var(--spacing-base);">
+                <input type="text" id="wifiIp" placeholder="192.168.1.100" 
+                       style="width: 100%; padding: var(--spacing-base); border-radius: var(--border-radius-critical); 
+                              background: rgba(42, 42, 53, 0.8); border: 2px solid rgba(255, 85, 0, 0.3); 
+                              color: var(--aluminum); font-family: 'Montserrat', sans-serif;">
+                <input type="text" id="wifiPort" placeholder="8080" 
+                       style="width: 100%; padding: var(--spacing-base); border-radius: var(--border-radius-critical); 
+                              background: rgba(42, 42, 53, 0.8); border: 2px solid rgba(255, 85, 0, 0.3); 
+                              color: var(--aluminum); font-family: 'Montserrat', sans-serif; margin-top: var(--spacing-base);">
+                <button class="control-button" onclick="app.connectWiFiCamera()" style="width: 100%; margin-top: var(--spacing-base);">
+                    <i class="fas fa-wifi"></i>
+                    Connect Wi-Fi Camera
+                </button>
+            </div>
+
+            <!-- Bluetooth Camera Instructions (Hidden by default) -->
+            <div id="bluetoothInstructions" style="display: none; margin-top: var(--spacing-base); padding: var(--spacing-base); background: rgba(42, 42, 53, 0.8); border-radius: var(--border-radius-critical); border: 2px solid rgba(255, 85, 0, 0.3);">
+                <h3 style="color: var(--fire-orange); margin-bottom: var(--spacing-base);">Bluetooth Camera Setup</h3>
+                <p style="color: var(--aluminum); font-size: 0.9rem; margin-bottom: var(--spacing-base);">
+                    1. Turn on your Bluetooth camera<br>
+                    2. Make sure Bluetooth is enabled on your computer<br>
+                    3. Click the button below to pair<br>
+                    4. Select your camera from the device list
+                </p>
+                <button class="control-button" onclick="app.connectBluetoothCamera()" style="width: 100%;">
+                    <i class="fas fa-bluetooth"></i>
+                    Pair Bluetooth Camera
                 </button>
             </div>
 
@@ -1882,7 +1913,7 @@
         </div>
     </div>
 
-    <!-- Audio for Alarms - Using a more reliable firetruck siren -->
+    <!-- Audio for Fire Alarm - Using a more reliable firetruck siren -->
     <audio id="fireAlarmSound" preload="auto" loop>
         <source src="https://assets.mixkit.co/sfx/preview/mixkit-fire-truck-alarm-1004.mp3" type="audio/mpeg">
         <source src="https://www.soundjay.com/ambient/sounds/fire-truck-siren-01.mp3" type="audio/mpeg">
@@ -1953,32 +1984,32 @@
                     return;
                 }
                 
-                console.log('🚒 FIRETRUCK SIREN STARTED - LOUD & NON-STOP');
+                console.log('🚒 FIRETRUCK ALARM STARTED - LOUD & NON-STOP');
                 
-                // First try to play MP3 siren
-                const mp3Siren = document.getElementById('fireAlarmSound');
-                if (mp3Siren) {
-                    mp3Siren.volume = this.volume;
-                    mp3Siren.loop = true;
+                // First try to play MP3 alarm
+                const mp3Alarm = document.getElementById('fireAlarmSound');
+                if (mp3Alarm) {
+                    mp3Alarm.volume = this.volume;
+                    mp3Alarm.loop = true;
                     
-                    const playPromise = mp3Siren.play();
+                    const playPromise = mp3Alarm.play();
                     if (playPromise !== undefined) {
                         playPromise.then(() => {
-                            console.log('MP3 firetruck siren playing');
+                            console.log('MP3 fire alarm playing');
                             this.isPlaying = true;
                         }).catch(error => {
-                            console.log('MP3 siren failed, using generated siren:', error);
-                            this.startGeneratedSiren();
+                            console.log('MP3 alarm failed, using generated alarm:', error);
+                            this.startGeneratedAlarm();
                         });
                     }
                 } else {
-                    this.startGeneratedSiren();
+                    this.startGeneratedAlarm();
                 }
             }
             
-            startGeneratedSiren() {
+            startGeneratedAlarm() {
                 if (!this.createSirenSound()) {
-                    console.error('Failed to create siren sound');
+                    console.error('Failed to create alarm sound');
                     return;
                 }
                 
@@ -1988,7 +2019,7 @@
                 
                 this.isPlaying = true;
                 
-                // Create siren effect by modulating frequencies
+                // Create alarm effect by modulating frequencies
                 let direction = 1;
                 let frequency1 = 800;
                 let frequency2 = 900;
@@ -2008,29 +2039,29 @@
                         this.oscillator2.frequency.setValueAtTime(frequency2, this.audioContext.currentTime);
                     }
                     
-                    // Add random modulation for more realistic siren
+                    // Add random modulation for more realistic alarm
                     if (Math.random() > 0.7) {
                         const randomMod = Math.random() * 100;
                         this.oscillator1.frequency.setValueAtTime(frequency1 + randomMod, this.audioContext.currentTime + 0.1);
                         this.oscillator2.frequency.setValueAtTime(frequency2 + randomMod, this.audioContext.currentTime + 0.1);
                     }
                     
-                }, 200); // Update every 200ms for siren effect
+                }, 200); // Update every 200ms for alarm effect
                 
-                console.log('Generated firetruck siren playing');
+                console.log('Generated fire alarm playing');
             }
             
             stop() {
-                console.log('🚒 FIRETRUCK SIREN STOPPED');
+                console.log('🚒 FIRETRUCK ALARM STOPPED');
                 
-                // Stop MP3 siren if playing
-                const mp3Siren = document.getElementById('fireAlarmSound');
-                if (mp3Siren) {
-                    mp3Siren.pause();
-                    mp3Siren.currentTime = 0;
+                // Stop MP3 alarm if playing
+                const mp3Alarm = document.getElementById('fireAlarmSound');
+                if (mp3Alarm) {
+                    mp3Alarm.pause();
+                    mp3Alarm.currentTime = 0;
                 }
                 
-                // Stop generated siren if playing
+                // Stop generated alarm if playing
                 if (this.sirenInterval) {
                     clearInterval(this.sirenInterval);
                     this.sirenInterval = null;
@@ -2063,7 +2094,7 @@
             }
         }
         
-        // Initialize siren system
+        // Initialize alarm system
         window.fireTruckSiren = new FireTruckSiren();
     </script>
 
@@ -2775,14 +2806,33 @@
                 
                 this.camera.currentType = type;
                 
-                // Show/hide RTSP input
+                // Show/hide appropriate input fields
                 const rtspInput = document.getElementById('rtspInput');
-                if (type === 'rtsp') {
-                    rtspInput.style.display = 'block';
-                    this.showNotification('RTSP SELECTED', 'Enter RTSP stream URL', 'info');
-                } else {
-                    rtspInput.style.display = 'none';
-                    this.showNotification(`${type.toUpperCase()} SELECTED`, `Camera type set to ${type}`, 'info');
+                const wifiInput = document.getElementById('wifiInput');
+                const bluetoothInstructions = document.getElementById('bluetoothInstructions');
+                
+                // Hide all inputs first
+                rtspInput.style.display = 'none';
+                wifiInput.style.display = 'none';
+                bluetoothInstructions.style.display = 'none';
+                
+                // Show appropriate input based on selection
+                switch(type) {
+                    case 'rtsp':
+                        rtspInput.style.display = 'block';
+                        this.showNotification('RTSP SELECTED', 'Enter RTSP stream URL', 'info');
+                        break;
+                    case 'wifi':
+                        wifiInput.style.display = 'block';
+                        this.showNotification('Wi-Fi SELECTED', 'Enter Wi-Fi camera IP and port', 'info');
+                        break;
+                    case 'bluetooth':
+                        bluetoothInstructions.style.display = 'block';
+                        this.showNotification('BLUETOOTH SELECTED', 'Follow instructions to pair Bluetooth camera', 'info');
+                        break;
+                    case 'webcam':
+                        this.showNotification('WEBCAM SELECTED', 'Will use local webcam', 'info');
+                        break;
                 }
                 
                 // Update connect button text
@@ -2806,6 +2856,30 @@
                 this.showNotification('RTSP SETUP', 'RTSP requires additional server setup. Please use Webcam instead.', 'warning');
             }
             
+            connectWiFiCamera() {
+                const wifiIp = document.getElementById('wifiIp').value;
+                const wifiPort = document.getElementById('wifiPort').value;
+                
+                if (!wifiIp || !wifiPort) {
+                    this.showNotification('Wi-Fi ERROR', 'Please enter IP address and port', 'warning');
+                    return;
+                }
+                
+                this.showNotification('Wi-Fi CONNECTION', `Connecting to Wi-Fi camera at ${wifiIp}:${wifiPort}...`, 'info');
+                this.addLog(`Attempting to connect Wi-Fi camera: ${wifiIp}:${wifiPort}`, 'info');
+                
+                // Show message about Wi-Fi camera setup
+                this.showNotification('Wi-Fi CAMERA', 'Wi-Fi camera connection requires camera with web interface.', 'warning');
+            }
+            
+            connectBluetoothCamera() {
+                this.showNotification('BLUETOOTH CONNECTION', 'Searching for Bluetooth cameras...', 'info');
+                this.addLog('Attempting to connect Bluetooth camera', 'info');
+                
+                // Show message about Bluetooth setup
+                this.showNotification('BLUETOOTH CAMERA', 'Bluetooth camera requires pairing with your device first.', 'warning');
+            }
+            
             async connectCamera() {
                 if (this.camera.isActive) {
                     this.showNotification('CAMERA', 'Camera already active', 'safe');
@@ -2823,12 +2897,11 @@
                         case 'rtsp':
                             this.connectRTSP();
                             break;
-                        case 'bluetooth':
-                        case 'ip':
                         case 'wifi':
-                            this.showNotification('CAMERA TYPE', 
-                                `${this.camera.currentType.toUpperCase()} camera connection requires additional hardware setup.`, 
-                                'warning');
+                            this.connectWiFiCamera();
+                            break;
+                        case 'bluetooth':
+                            this.connectBluetoothCamera();
                             break;
                         default:
                             await this.connectWebcam();
@@ -3299,7 +3372,7 @@
                     // Show emergency alert with specific sensor info
                     this.showEmergencyAlert(sensorName);
                     
-                    // Play LOUD NON-STOP FIRETRUCK SIREN
+                    // Play LOUD NON-STOP FIRETRUCK ALARM
                     this.playAlarmSound();
                     
                     this.showNotification('FIRE EMERGENCY', `${sensorName} detected fire!`, 'critical');
@@ -3344,7 +3417,7 @@
                 alertModal.style.display = 'none';
                 this.alertActive = false;
                 
-                // STOP THE LOUD NON-STOP FIRETRUCK SIREN
+                // STOP THE LOUD NON-STOP FIRETRUCK ALARM
                 this.stopAlarmSound();
                 
                 this.showNotification('ALERT ACKNOWLEDGED', 'Fire alert cleared', 'safe');
@@ -3389,7 +3462,7 @@
                 alertModal.style.display = 'flex';
                 this.alertActive = true;
                 
-                // Play LOUD NON-STOP FIRETRUCK SIREN
+                // Play LOUD NON-STOP FIRETRUCK ALARM
                 this.playAlarmSound();
                 
                 this.showNotification('TEST FIRE ALERT', 'Manual test fire alert triggered', 'warning');
@@ -3409,14 +3482,14 @@
             }
             
             playAlarmSound() {
-                console.log('🚒 PLAYING LOUD NON-STOP FIRETRUCK SIREN');
+                console.log('🚒 PLAYING LOUD NON-STOP FIRETRUCK ALARM');
                 this.alarmPlaying = true;
                 
-                // Use the FireTruckSiren class for loud non-stop siren
+                // Use the FireTruckSiren class for loud non-stop alarm
                 if (window.fireTruckSiren) {
                     window.fireTruckSiren.start();
                 } else {
-                    // Fallback to MP3 siren
+                    // Fallback to MP3 alarm
                     const alarmSound = document.getElementById('fireAlarmSound');
                     alarmSound.currentTime = 0;
                     alarmSound.volume = 0.8; // 80% volume - VERY LOUD
@@ -3444,7 +3517,7 @@
                     gainNode.connect(audioContext.destination);
                     
                     oscillator.frequency.value = 800; // Frequency in hertz
-                    oscillator.type = 'sawtooth'; // Siren-like sound
+                    oscillator.type = 'sawtooth'; // Alarm-like sound
                     
                     gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
                     
@@ -3461,7 +3534,7 @@
             }
             
             stopAlarmSound() {
-                console.log('🛑 STOPPING FIRETRUCK SIREN');
+                console.log('🛑 STOPPING FIRETRUCK ALARM');
                 this.alarmPlaying = false;
                 
                 // Stop the FireTruckSiren
@@ -3469,7 +3542,7 @@
                     window.fireTruckSiren.stop();
                 }
                 
-                // Stop MP3 siren if playing
+                // Stop MP3 alarm if playing
                 const alarmSound = document.getElementById('fireAlarmSound');
                 alarmSound.pause();
                 alarmSound.currentTime = 0;
@@ -3972,6 +4045,8 @@
         window.acknowledgeAlert = () => app.acknowledgeAlert();
         window.selectCamera = (type) => app.selectCamera(type);
         window.connectRTSP = () => app.connectRTSP();
+        window.connectWiFiCamera = () => app.connectWiFiCamera();
+        window.connectBluetoothCamera = () => app.connectBluetoothCamera();
         window.triggerTestFireAlert = () => app.triggerTestFireAlert();
 
         // Add fadeOut animation
