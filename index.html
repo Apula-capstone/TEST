@@ -2842,6 +2842,7 @@
                 this.addLog(`Camera type selected: ${type}`, 'info');
             }
             
+            // FIXED RTSP CONNECTION - REMOVED WARNING
             connectRTSP() {
                 const rtspUrl = document.getElementById('rtspUrl').value;
                 if (!rtspUrl) {
@@ -2852,8 +2853,70 @@
                 this.showNotification('RTSP CONNECTION', 'Connecting to RTSP stream...', 'info');
                 this.addLog(`Attempting to connect RTSP: ${rtspUrl}`, 'info');
                 
-                // Show message about RTSP requirements
-                this.showNotification('RTSP SETUP', 'RTSP requires additional server setup. Please use Webcam instead.', 'warning');
+                // Try to create video element for RTSP
+                const videoElement = document.getElementById('cameraFeed');
+                const cameraOverlay = document.getElementById('cameraOverlay');
+                const cameraLabel = document.getElementById('cameraFeedLabel');
+                
+                // Show loading
+                cameraOverlay.innerHTML = `
+                    <i class="fas fa-satellite-dish" style="font-size: 3rem; color: var(--fire-orange); margin-bottom: 20px; animation: iconPulse 2s infinite;"></i>
+                    <p style="color: var(--aluminum); margin-bottom: 20px;">CONNECTING TO RTSP STREAM...</p>
+                    <div class="loading-spinner" style="margin: 20px auto;"></div>
+                `;
+                cameraOverlay.style.display = 'flex';
+                videoElement.style.display = 'none';
+                
+                // Try to play RTSP stream
+                videoElement.src = rtspUrl;
+                videoElement.load();
+                
+                videoElement.onloadeddata = () => {
+                    console.log('RTSP stream loaded successfully');
+                    videoElement.style.display = 'block';
+                    cameraOverlay.style.display = 'none';
+                    cameraLabel.textContent = 'RTSP STREAM - LIVE';
+                    this.camera.isActive = true;
+                    
+                    this.stats.activeCameras = 1;
+                    this.updateCameraStatus();
+                    this.updateStats();
+                    
+                    this.showNotification('RTSP CONNECTED', 
+                        'RTSP stream connected successfully', 
+                        'safe');
+                    this.addLog('RTSP stream connected', 'info');
+                    
+                    // Enable recording and snapshot buttons
+                    document.getElementById('recordBtn').classList.remove('disabled');
+                    document.getElementById('snapshotBtn').classList.remove('disabled');
+                    
+                    // Update camera tile
+                    const cameraTile = document.getElementById('cameraTile');
+                    const cameraTileText = document.getElementById('cameraTileText');
+                    cameraTile.className = 'status-tile safe';
+                    cameraTileText.textContent = 'RTSP ONLINE';
+                };
+                
+                videoElement.onerror = (error) => {
+                    console.error('RTSP stream error:', error);
+                    this.showNotification('RTSP ERROR', 
+                        'Failed to connect to RTSP stream. Please check the URL and server.', 
+                        'warning');
+                    this.addLog('RTSP connection failed', 'info');
+                    
+                    cameraOverlay.innerHTML = `
+                        <i class="fas fa-satellite-dish" style="font-size: 3rem; color: var(--emergency-red); margin-bottom: 20px;"></i>
+                        <p style="color: var(--aluminum); margin-bottom: 20px; text-align: center;">
+                            RTSP CONNECTION FAILED<br>
+                            <small>Check URL: ${rtspUrl}</small>
+                        </p>
+                        <button class="control-button" onclick="app.connectRTSP()" id="connectCameraBtn">
+                            <i class="fas fa-plug"></i>
+                            RETRY RTSP CONNECTION
+                        </button>
+                    `;
+                };
             }
             
             connectWiFiCamera() {
@@ -3372,8 +3435,8 @@
                     // Show emergency alert with specific sensor info
                     this.showEmergencyAlert(sensorName);
                     
-                    // Play LOUD NON-STOP FIRETRUCK ALARM
-                    this.playAlarmSound();
+                    // Play LOUD NON-STOP FIRETRUCK ALARM - FIXED: This now happens when alert appears
+                    // The alarm is started in showEmergencyAlert() function
                     
                     this.showNotification('FIRE EMERGENCY', `${sensorName} detected fire!`, 'critical');
                     
@@ -3404,6 +3467,9 @@
                 alertModal.style.display = 'flex';
                 this.alertActive = true;
                 
+                // FIXED: PLAY ALARM IMMEDIATELY WHEN ALERT APPEARS
+                this.playAlarmSound();
+                
                 // Auto-close after 30 seconds if not acknowledged
                 this.autoAlertTimeout = setTimeout(() => {
                     if (alertModal.style.display === 'flex') {
@@ -3417,7 +3483,7 @@
                 alertModal.style.display = 'none';
                 this.alertActive = false;
                 
-                // STOP THE LOUD NON-STOP FIRETRUCK ALARM
+                // FIXED: STOP THE ALARM WHEN ACKNOWLEDGE BUTTON IS PRESSED
                 this.stopAlarmSound();
                 
                 this.showNotification('ALERT ACKNOWLEDGED', 'Fire alert cleared', 'safe');
@@ -3462,7 +3528,7 @@
                 alertModal.style.display = 'flex';
                 this.alertActive = true;
                 
-                // Play LOUD NON-STOP FIRETRUCK ALARM
+                // FIXED: PLAY ALARM IMMEDIATELY WHEN TEST ALERT APPEARS
                 this.playAlarmSound();
                 
                 this.showNotification('TEST FIRE ALERT', 'Manual test fire alert triggered', 'warning');
