@@ -1,8 +1,10 @@
 const express = require('express');
 const WebSocket = require('ws');
 const path = require('path');
-const SerialPort = require('serialport');
-const Readline = require('@serialport/parser-readline');
+const { SerialPort } = require('serialport');
+const { ReadlineParser } = require('@serialport/parser-readline');
+const ffmpegPath = require('ffmpeg-static');
+const { spawn } = require('child_process');
 
 const app = express();
 const PORT = 3000;
@@ -27,6 +29,46 @@ let clients = [];
 let arduinoPort = null;
 let parser = null;
 let arduinoConnected = false;
+
+// RTSP MJPEG proxy
+app.get('/rtsp-mjpeg', (req, res) => {
+    const rtspUrl = req.query.url;
+    if (!rtspUrl) {
+        res.status(400).send('Missing RTSP URL');
+        return;
+    }
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Connection', 'close');
+    res.setHeader('Content-Type', 'multipart/x-mixed-replace; boundary=frame');
+
+    const ffmpegArgs = [
+        '-rtsp_transport', 'tcp',
+        '-i', rtspUrl,
+        '-f', 'mjpeg',
+        '-q:v', '5',
+        'pipe:1'
+    ];
+
+    const ffmpeg = spawn(ffmpegPath, ffmpegArgs, { stdio: ['ignore', 'pipe', 'pipe'] });
+
+    ffmpeg.stdout.on('data', (chunk) => {
+        res.write(`--frame\r\nContent-Type: image/jpeg\r\nContent-Length: ${chunk.length}\r\n\r\n`);
+        res.write(chunk);
+        res.write('\r\n');
+    });
+
+    ffmpeg.stderr.on('data', () => {});
+
+    ffmpeg.on('close', () => {
+        try { res.end(); } catch {}
+    });
+
+    req.on('close', () => {
+        try { ffmpeg.kill('SIGKILL'); } catch {}
+    });
+});
 
 // Find Arduino port automatically
 async function findArduinoPort() {
@@ -74,7 +116,7 @@ async function connectToArduino() {
             autoOpen: true
         });
 
-        parser = arduinoPort.pipe(new Readline({ delimiter: '\n' }));
+        parser = arduinoPort.pipe(new ReadlineParser({ delimiter: '\n' }));
 
         arduinoPort.on('open', () => {
             console.log('✅ Arduino connected successfully!');
