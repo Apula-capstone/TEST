@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>APULA - EMERGENCY DASHBOARD</title>
+    <title>APULA FIRE COMMAND - Emergency Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -1472,6 +1472,40 @@
             letter-spacing: 1px;
         }
 
+        /* Test Fire Alert Button */
+        .test-fire-button {
+            background: linear-gradient(135deg, 
+                var(--hazard-yellow),
+                var(--fire-orange));
+            border: none;
+            border-radius: var(--border-radius-critical);
+            padding: var(--spacing-wide);
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(255, 170, 0, 0.3);
+            min-height: 90px;
+            justify-content: center;
+            margin-top: var(--spacing-base);
+        }
+
+        .test-fire-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(255, 170, 0, 0.5);
+            background: linear-gradient(135deg, 
+                var(--fire-orange),
+                var(--emergency-red));
+        }
+
         /* Accessibility */
         @media (prefers-reduced-motion: reduce) {
             * {
@@ -1510,12 +1544,12 @@
                     <div class="info-item">
                         <i class="fas fa-map-marker-alt info-icon"></i>
                         <span class="info-label">Location:</span>
-                        <span class="info-value" id="alertLocation">Arduino Sensors</span>
+                        <span class="info-value" id="alertLocation">Test Fire Alert</span>
                     </div>
                     <div class="info-item">
                         <i class="fas fa-fire info-icon"></i>
                         <span class="info-label">Severity:</span>
-                        <span class="info-value" id="alertSeverity" style="color: var(--emergency-red);">CRITICAL</span>
+                        <span class="info-value" id="alertSeverity" style="color: var(--emergency-red);">TEST ALERT</span>
                     </div>
                     <div class="info-item">
                         <i class="fas fa-clock info-icon"></i>
@@ -1525,7 +1559,7 @@
                     <div class="info-item">
                         <i class="fas fa-tint info-icon"></i>
                         <span class="info-label">Response:</span>
-                        <span class="info-value" style="color: var(--water-blue);">AUTOMATIC ACTIVATION</span>
+                        <span class="info-value" style="color: var(--water-blue);">TEST MODE</span>
                     </div>
                 </div>
             </div>
@@ -1622,6 +1656,12 @@
                     <div class="tile-subtitle">Click to Connect</div>
                 </div>
             </div>
+
+            <!-- TEST FIRE ALERT BUTTON -->
+            <button class="test-fire-button" onclick="app.triggerTestFireAlert()">
+                <i class="fas fa-fire-extinguisher"></i>
+                TRIGGER TEST FIRE ALERT
+            </button>
 
             <!-- Camera Options -->
             <div class="camera-options">
@@ -2512,6 +2552,9 @@
                 this.updateGallery();
                 this.showNotification('SYSTEM ONLINE', 'Fire Command Dashboard activated', 'safe');
                 this.addLog('Emergency dashboard system initialized', 'info');
+                
+                // TURN OFF SIMULATIONS by default
+                this.simulateCameraConnection = false;
             }
             
             bindEvents() {
@@ -2575,12 +2618,7 @@
                 this.addLog(`Attempting to connect RTSP: ${rtspUrl}`, 'info');
                 
                 // Show message about RTSP requirements
-                this.showNotification('RTSP SETUP', 'RTSP requires additional server setup. Using webcam simulation instead.', 'warning');
-                
-                // Simulate connection for demo
-                setTimeout(() => {
-                    this.simulateCameraConnection('RTSP Camera');
-                }, 1000);
+                this.showNotification('RTSP SETUP', 'RTSP requires additional server setup. Please use Webcam instead.', 'warning');
             }
             
             async connectCamera() {
@@ -2604,9 +2642,8 @@
                         case 'ip':
                         case 'wifi':
                             this.showNotification('CAMERA TYPE', 
-                                `${this.camera.currentType.toUpperCase()} camera connection requires additional hardware setup. Using webcam instead.`, 
+                                `${this.camera.currentType.toUpperCase()} camera connection requires additional hardware setup.`, 
                                 'warning');
-                            await this.connectWebcam();
                             break;
                         default:
                             await this.connectWebcam();
@@ -2618,6 +2655,11 @@
                         `Failed to access camera: ${error.message}`, 
                         'warning');
                     this.addLog(`Failed to connect camera: ${error.message}`, 'info');
+                    
+                    // DO NOT FALLBACK TO SIMULATION - keep camera offline
+                    this.showNotification('CAMERA OFFLINE', 
+                        'Please connect a physical camera or enable camera permissions', 
+                        'warning');
                 } finally {
                     this.showLoading(false);
                 }
@@ -2675,92 +2717,34 @@
                     cameraTileText.textContent = 'WEBCAM ONLINE';
                     
                 } catch (error) {
-                    // Fallback to simulation if webcam access is denied
-                    console.log('Webcam access denied, using simulation:', error);
-                    this.simulateCameraConnection('Webcam Simulation');
+                    // DO NOT FALLBACK TO SIMULATION - show error instead
+                    console.log('Webcam access denied:', error);
+                    this.showNotification('CAMERA ACCESS DENIED', 
+                        'Please allow camera access or connect a physical camera', 
+                        'warning');
+                    this.addLog('Webcam access denied - no simulation will be used', 'info');
+                    
+                    // Update camera tile to show error
+                    const cameraTile = document.getElementById('cameraTile');
+                    const cameraTileText = document.getElementById('cameraTileText');
+                    cameraTile.className = 'status-tile warning';
+                    cameraTileText.textContent = 'ACCESS DENIED';
+                    
+                    // Keep camera overlay visible
+                    const cameraOverlay = document.getElementById('cameraOverlay');
+                    cameraOverlay.style.display = 'flex';
+                    cameraOverlay.innerHTML = `
+                        <i class="fas fa-camera-slash" style="font-size: 3rem; color: var(--emergency-red); margin-bottom: 20px;"></i>
+                        <p style="color: var(--aluminum); margin-bottom: 20px; text-align: center;">
+                            CAMERA ACCESS DENIED<br>
+                            <small>Please allow camera permissions or connect a physical camera</small>
+                        </p>
+                        <button class="control-button" onclick="app.connectCamera()" id="connectCameraBtn">
+                            <i class="fas fa-plug"></i>
+                            RETRY CAMERA CONNECTION
+                        </button>
+                    `;
                 }
-            }
-            
-            simulateCameraConnection(cameraName) {
-                // Create a simulated camera feed
-                const videoElement = document.getElementById('cameraFeed');
-                const cameraOverlay = document.getElementById('cameraOverlay');
-                const cameraLabel = document.getElementById('cameraFeedLabel');
-                
-                // Create a canvas for simulation
-                const canvas = document.createElement('canvas');
-                canvas.width = 640;
-                canvas.height = 480;
-                const ctx = canvas.getContext('2d');
-                
-                // Create video stream from canvas
-                const stream = canvas.captureStream(30);
-                videoElement.srcObject = stream;
-                videoElement.style.display = 'block';
-                cameraOverlay.style.display = 'none';
-                cameraLabel.textContent = `${cameraName} - SIMULATION`;
-                
-                // Animate the simulation
-                let frame = 0;
-                function drawSimulation() {
-                    ctx.fillStyle = '#1a1a25';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    
-                    // Draw scanning line
-                    const scanY = (frame % 100) * 4.8;
-                    ctx.fillStyle = 'rgba(255, 85, 0, 0.3)';
-                    ctx.fillRect(0, scanY, canvas.width, 20);
-                    
-                    // Draw grid
-                    ctx.strokeStyle = 'rgba(255, 85, 0, 0.1)';
-                    ctx.lineWidth = 1;
-                    for (let i = 0; i < canvas.width; i += 40) {
-                        ctx.beginPath();
-                        ctx.moveTo(i, 0);
-                        ctx.lineTo(i, canvas.height);
-                        ctx.stroke();
-                    }
-                    for (let i = 0; i < canvas.height; i += 40) {
-                        ctx.beginPath();
-                        ctx.moveTo(0, i);
-                        ctx.lineTo(canvas.width, i);
-                        ctx.stroke();
-                    }
-                    
-                    // Draw camera label
-                    ctx.fillStyle = 'rgba(255, 34, 0, 0.8)';
-                    ctx.font = 'bold 20px Orbitron';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(cameraName, canvas.width/2, 30);
-                    ctx.font = '14px Montserrat';
-                    ctx.fillText('Simulation Mode', canvas.width/2, 50);
-                    
-                    frame++;
-                    requestAnimationFrame(drawSimulation);
-                }
-                drawSimulation();
-                
-                this.camera.stream = stream;
-                this.camera.isActive = true;
-                
-                this.stats.activeCameras = 1;
-                this.updateCameraStatus();
-                this.updateStats();
-                
-                this.showNotification('CAMERA SIMULATION', 
-                    `${cameraName} simulation active. Recording disabled in simulation mode.`, 
-                    'info');
-                this.addLog(`Camera simulation started: ${cameraName}`, 'info');
-                
-                // Update camera tile
-                const cameraTile = document.getElementById('cameraTile');
-                const cameraTileText = document.getElementById('cameraTileText');
-                cameraTile.className = 'status-tile safe';
-                cameraTileText.textContent = `${cameraName.toUpperCase()}`;
-                
-                // Disable recording in simulation mode
-                document.getElementById('recordBtn').classList.add('disabled');
-                document.getElementById('snapshotBtn').classList.add('disabled');
             }
             
             setupMediaRecorder(stream) {
@@ -3182,6 +3166,59 @@
                 }
             }
             
+            // === TEST FIRE ALERT FUNCTION ===
+            triggerTestFireAlert() {
+                console.log('🚨 TEST FIRE ALERT TRIGGERED');
+                
+                // Update fire statistics
+                this.stats.fires++;
+                this.updateStats();
+                
+                // Update fire status tile
+                const fireTile = document.getElementById('fireStatusTile');
+                const fireText = document.getElementById('fireStatusText');
+                fireTile.className = 'status-tile critical';
+                fireText.textContent = 'TEST FIRE';
+                
+                // Show test emergency alert
+                const alertModal = document.getElementById('emergencyAlert');
+                const alertTime = document.getElementById('alertTime');
+                const alertLocation = document.getElementById('alertLocation');
+                const alertSeverity = document.getElementById('alertSeverity');
+                
+                const now = new Date();
+                alertTime.textContent = now.toLocaleTimeString('en-US', {
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                
+                alertLocation.textContent = 'Test Fire Alert';
+                alertSeverity.textContent = 'TEST ALERT';
+                alertSeverity.style.color = 'var(--hazard-yellow)';
+                
+                alertModal.style.display = 'flex';
+                
+                // Play firetruck siren alarm sound at 50% volume
+                this.playAlarmSound();
+                
+                this.showNotification('TEST FIRE ALERT', 'Manual test fire alert triggered', 'warning');
+                this.addLog('TEST FIRE ALERT: Manual test alert triggered', 'alert');
+                
+                // Auto-activate water after 2 seconds
+                setTimeout(() => {
+                    this.activateWater();
+                }, 2000);
+                
+                // Auto-close after 30 seconds if not acknowledged
+                this.autoAlertTimeout = setTimeout(() => {
+                    if (alertModal.style.display === 'flex') {
+                        this.acknowledgeAlert();
+                    }
+                }, 30000);
+            }
+            
             playAlarmSound() {
                 const alarmSound = document.getElementById('fireAlarmSound');
                 alarmSound.currentTime = 0;
@@ -3216,6 +3253,12 @@
                 const alarmSound = document.getElementById('fireAlarmSound');
                 alarmSound.pause();
                 alarmSound.currentTime = 0;
+                
+                // Reset fire status tile
+                const fireTile = document.getElementById('fireStatusTile');
+                const fireText = document.getElementById('fireStatusText');
+                fireTile.className = 'status-tile safe';
+                fireText.textContent = 'NO FIRE';
             }
             
             // === GALLERY FUNCTIONS ===
@@ -3648,6 +3691,7 @@
         window.acknowledgeAlert = () => app.acknowledgeAlert();
         window.selectCamera = (type) => app.selectCamera(type);
         window.connectRTSP = () => app.connectRTSP();
+        window.triggerTestFireAlert = () => app.triggerTestFireAlert();
 
         // Add fadeOut animation
         const style = document.createElement('style');
