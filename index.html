@@ -1658,15 +1658,15 @@
             <!-- Sensor Display -->
             <div class="sensor-grid" id="sensorDisplay" style="display: none;">
                 <div class="sensor-item">
-                    <div class="sensor-label">Sensor 1 (D2)</div>
+                    <div class="sensor-label">Flame Sensor 1 (D2)</div>
                     <div class="sensor-value safe" id="sensor1Value">✓ OK</div>
                 </div>
                 <div class="sensor-item">
-                    <div class="sensor-label">Sensor 2 (D3)</div>
+                    <div class="sensor-label">Flame Sensor 2 (D3)</div>
                     <div class="sensor-value safe" id="sensor2Value">✓ OK</div>
                 </div>
                 <div class="sensor-item">
-                    <div class="sensor-label">Sensor 3 (D4)</div>
+                    <div class="sensor-label">Flame Sensor 3 (D4)</div>
                     <div class="sensor-value safe" id="sensor3Value">✓ OK</div>
                 </div>
             </div>
@@ -1842,1665 +1842,1822 @@
     </div>
 
     <!-- Audio for Alarms -->
-    <audio id="fireAlarmSound" preload="auto">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-emergency-alert-alarm-1007.mp3" type="audio/mpeg">
+    <audio id="fireAlarmSound" preload="auto" volume="0.5">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-fire-truck-alarm-1004.mp3" type="audio/mpeg">
     </audio>
 
     <script>
         // === REAL ARDUINO INTEGRATION (Web Serial API) ===
-        <script>
-    // === REAL ARDUINO INTEGRATION (Web Serial API) ===
-    class ArduinoIntegration {
-        constructor() {
-            this.port = null;
-            this.reader = null;
-            this.writer = null;
-            this.connected = false;
-            this.reconnectAttempts = 0;
-            this.maxReconnectAttempts = 5;
-            this.sensorStates = [1, 1, 1]; // 1 = no fire, 0 = fire
-            this.fireDetected = false;
-            this.fireLocation = "";
-            this.autoReconnect = true;
-            this.baudRate = 9600; // Standard Arduino baud rate
-            this.reading = false;
-            this.sensorValues = [0, 0, 0];
-            this.lastFireAlertTime = 0; // Track last fire alert time
-            this.fireAlertCooldown = 0; // No cooldown - set to 0
-            
-            this.init();
-        }
-        
-        init() {
-            console.log('Initializing Arduino integration with Web Serial API...');
-            
-            // Check if Web Serial API is supported
-            if (!('serial' in navigator)) {
-                console.error('Web Serial API not supported in this browser');
-                this.showWebSerialError();
-                return;
-            }
-            
-            // Make Arduino status tile clickable
-            const arduinoTile = document.getElementById('arduinoTile');
-            if (arduinoTile) {
-                arduinoTile.addEventListener('click', () => {
-                    if (!this.connected) {
-                        this.connectSerial();
-                    } else {
-                        this.disconnect();
-                    }
-                });
-            }
-            
-            // Show initial status
-            this.updateConnectionStatus('disconnected');
-            
-            // Check for saved connection
-            const savedConnection = localStorage.getItem('arduino_auto_connect');
-            if (savedConnection === 'true') {
-                setTimeout(() => {
-                    this.connectSerial();
-                }, 1000);
-            }
-        }
-        
-        showWebSerialError() {
-            const errorHtml = `
-                <div style="background: rgba(255,34,0,0.1); border: 2px solid var(--emergency-red); 
-                            border-radius: 10px; padding: 15px; margin-top: 10px;">
-                    <h4 style="color: var(--emergency-red); margin-bottom: 10px;">
-                        <i class="fas fa-exclamation-triangle"></i> Web Serial API Not Supported
-                    </h4>
-                    <p style="font-size: 0.85rem; color: var(--aluminum);">
-                        Your browser doesn't support direct Arduino connection.<br>
-                        <strong>Supported browsers:</strong> Chrome/Edge 89+, Opera 76+
-                    </p>
-                    <p style="font-size: 0.8rem; margin-top: 8px;">
-                        Try using Chrome or Edge browser to connect to your physical Arduino.
-                    </p>
-                </div>
-            `;
-            
-            this.showNotification('Arduino Error', 'Web Serial API not supported in this browser', 'warning');
-        }
-        
-        async connectSerial() {
-            try {
-                console.log('🔌 Requesting serial port...');
-                this.updateConnectionStatus('connecting');
-                
-                // Request a serial port
-                this.port = await navigator.serial.requestPort();
-                
-                console.log('✅ Port selected:', this.port.getInfo());
-                
-                // Open the port with Arduino standard baud rate
-                await this.port.open({ baudRate: this.baudRate });
-                
-                console.log('✅ Port opened at', this.baudRate, 'baud');
-                
-                // Set up text encoder/decoder
-                const textDecoder = new TextDecoderStream();
-                const readableStreamClosed = this.port.readable.pipeTo(textDecoder.writable);
-                this.reader = textDecoder.readable.getReader();
-                
-                // Set up writer
-                const textEncoder = new TextEncoderStream();
-                const writableStreamClosed = textEncoder.readable.pipeTo(this.port.writable);
-                this.writer = textEncoder.writable.getWriter();
-                
-                this.connected = true;
+        class ArduinoIntegration {
+            constructor() {
+                this.port = null;
+                this.reader = null;
+                this.writer = null;
+                this.connected = false;
                 this.reconnectAttempts = 0;
-                this.updateConnectionStatus('connected');
+                this.maxReconnectAttempts = 5;
+                this.sensorStates = [1, 1, 1]; // 1 = no fire, 0 = fire
+                this.fireDetected = false;
+                this.fireLocation = "";
+                this.autoReconnect = true;
+                this.baudRate = 9600; // Standard Arduino baud rate
+                this.reading = false;
+                this.sensorValues = [0, 0, 0];
+                this.lastFireAlertTime = 0;
+                this.fireAlertCooldown = 0; // NO COOLDOWN - set to 0
+                this.flameSensors = ['Flame Sensor 1', 'Flame Sensor 2', 'Flame Sensor 3'];
                 
-                // Save auto-connect preference
-                localStorage.setItem('arduino_auto_connect', 'true');
+                this.init();
+            }
+            
+            init() {
+                console.log('Initializing Arduino integration with Web Serial API...');
                 
-                // Send connection confirmation to Arduino
-                await this.sendToArduino('CONNECTED\n');
-                
-                this.showNotification('Arduino Connected', 
-                    'Connected to Arduino UNO via Serial. Sensors active.', 
-                    'safe');
-                this.addLog('Arduino connected via Web Serial API', 'arduino');
-                
-                // Start reading data
-                this.startReading();
-                
-                // Set up disconnect handling
-                this.port.addEventListener('disconnect', () => {
-                    console.log('Arduino disconnected');
-                    this.handleDisconnect();
-                });
-                
-            } catch (error) {
-                console.error('Failed to connect to Arduino:', error);
-                
-                if (error.name === 'NotFoundError') {
-                    this.showNotification('No Arduino Found', 
-                        'No Arduino device was selected. Please try again.', 
-                        'warning');
-                } else if (error.name === 'SecurityError') {
-                    this.showNotification('Security Error', 
-                        'Your browser blocked the Arduino connection for security.', 
-                        'warning');
-                } else {
-                    this.showNotification('Connection Failed', 
-                        `Failed to connect: ${error.message}`, 
-                        'warning');
+                // Check if Web Serial API is supported
+                if (!('serial' in navigator)) {
+                    console.error('Web Serial API not supported in this browser');
+                    this.showWebSerialError();
+                    return;
                 }
                 
+                // Make Arduino status tile clickable
+                const arduinoTile = document.getElementById('arduinoTile');
+                if (arduinoTile) {
+                    arduinoTile.addEventListener('click', () => {
+                        if (!this.connected) {
+                            this.connectSerial();
+                        } else {
+                            this.disconnect();
+                        }
+                    });
+                }
+                
+                // Show initial status
                 this.updateConnectionStatus('disconnected');
+                
+                // Check for saved connection
+                const savedConnection = localStorage.getItem('arduino_auto_connect');
+                if (savedConnection === 'true') {
+                    setTimeout(() => {
+                        this.connectSerial();
+                    }, 1000);
+                }
             }
-        }
-        
-        async startReading() {
-            if (this.reading) return;
             
-            this.reading = true;
-            console.log('📡 Starting to read Arduino data...');
+            showWebSerialError() {
+                const errorHtml = `
+                    <div style="background: rgba(255,34,0,0.1); border: 2px solid var(--emergency-red); 
+                                border-radius: 10px; padding: 15px; margin-top: 10px;">
+                        <h4 style="color: var(--emergency-red); margin-bottom: 10px;">
+                            <i class="fas fa-exclamation-triangle"></i> Web Serial API Not Supported
+                        </h4>
+                        <p style="font-size: 0.85rem; color: var(--aluminum);">
+                            Your browser doesn't support direct Arduino connection.<br>
+                            <strong>Supported browsers:</strong> Chrome/Edge 89+, Opera 76+
+                        </p>
+                        <p style="font-size: 0.8rem; margin-top: 8px;">
+                            Try using Chrome or Edge browser to connect to your physical Arduino.
+                        </p>
+                    </div>
+                `;
+                
+                this.showNotification('Arduino Error', 'Web Serial API not supported in this browser', 'warning');
+            }
             
-            try {
-                while (this.connected && this.reading) {
-                    try {
-                        const { value, done } = await this.reader.read();
-                        if (done) {
-                            console.log('Reader done');
+            async connectSerial() {
+                try {
+                    console.log('🔌 Requesting serial port...');
+                    this.updateConnectionStatus('connecting');
+                    
+                    // Request a serial port
+                    this.port = await navigator.serial.requestPort();
+                    
+                    console.log('✅ Port selected:', this.port.getInfo());
+                    
+                    // Open the port with Arduino standard baud rate
+                    await this.port.open({ baudRate: this.baudRate });
+                    
+                    console.log('✅ Port opened at', this.baudRate, 'baud');
+                    
+                    // Set up text encoder/decoder
+                    const textDecoder = new TextDecoderStream();
+                    const readableStreamClosed = this.port.readable.pipeTo(textDecoder.writable);
+                    this.reader = textDecoder.readable.getReader();
+                    
+                    // Set up writer
+                    const textEncoder = new TextEncoderStream();
+                    const writableStreamClosed = textEncoder.readable.pipeTo(this.port.writable);
+                    this.writer = textEncoder.writable.getWriter();
+                    
+                    this.connected = true;
+                    this.reconnectAttempts = 0;
+                    this.updateConnectionStatus('connected');
+                    
+                    // Save auto-connect preference
+                    localStorage.setItem('arduino_auto_connect', 'true');
+                    
+                    // Send connection confirmation to Arduino
+                    await this.sendToArduino('CONNECTED\n');
+                    
+                    this.showNotification('Arduino Connected', 
+                        'Connected to Arduino UNO via Serial. Flame sensors active.', 
+                        'safe');
+                    this.addLog('Arduino connected via Web Serial API', 'arduino');
+                    
+                    // Start reading data
+                    this.startReading();
+                    
+                    // Set up disconnect handling
+                    this.port.addEventListener('disconnect', () => {
+                        console.log('Arduino disconnected');
+                        this.handleDisconnect();
+                    });
+                    
+                } catch (error) {
+                    console.error('Failed to connect to Arduino:', error);
+                    
+                    if (error.name === 'NotFoundError') {
+                        this.showNotification('No Arduino Found', 
+                            'No Arduino device was selected. Please try again.', 
+                            'warning');
+                    } else if (error.name === 'SecurityError') {
+                        this.showNotification('Security Error', 
+                            'Your browser blocked the Arduino connection for security.', 
+                            'warning');
+                    } else {
+                        this.showNotification('Connection Failed', 
+                            `Failed to connect: ${error.message}`, 
+                            'warning');
+                    }
+                    
+                    this.updateConnectionStatus('disconnected');
+                }
+            }
+            
+            async startReading() {
+                if (this.reading) return;
+                
+                this.reading = true;
+                console.log('📡 Starting to read Arduino data...');
+                
+                try {
+                    while (this.connected && this.reading) {
+                        try {
+                            const { value, done } = await this.reader.read();
+                            if (done) {
+                                console.log('Reader done');
+                                break;
+                            }
+                            
+                            if (value) {
+                                this.parseArduinoData(value);
+                            }
+                            
+                        } catch (error) {
+                            console.error('Error reading from Arduino:', error);
                             break;
                         }
-                        
-                        if (value) {
-                            this.parseArduinoData(value);
-                        }
-                        
-                    } catch (error) {
-                        console.error('Error reading from Arduino:', error);
-                        break;
+                    }
+                } finally {
+                    this.reading = false;
+                    if (this.reader) {
+                        this.reader.releaseLock();
                     }
                 }
-            } finally {
-                this.reading = false;
-                if (this.reader) {
-                    this.reader.releaseLock();
-                }
             }
-        }
-        
-        parseArduinoData(data) {
-            try {
-                // Clean the data - remove carriage returns and extra whitespace
-                const cleanData = data.replace(/\r/g, '');
-                
-                // Split data by newlines (Arduino usually sends one reading per line)
-                const lines = cleanData.split('\n').filter(line => line.trim() !== '');
-                
-                lines.forEach(line => {
-                    const trimmedLine = line.trim();
-                    console.log('📨 Arduino:', trimmedLine);
-                    
-                    // Parse different data formats from Arduino
-                    
-                    // Format 1: Simple comma-separated values (e.g., "1,0,1")
-                    if (/^\d+,\d+,\d+$/.test(trimmedLine)) {
-                        const sensorValues = trimmedLine.split(',').map(val => {
-                            const num = parseInt(val);
-                            // Convert to fire/no-fire (0 = fire, 1 = no fire)
-                            // Assuming higher values = no fire, lower values = fire
-                            return num > 500 ? 1 : 0;
-                        });
-                        
-                        if (sensorValues.length === 3) {
-                            this.sensorStates = sensorValues;
-                            this.updateSensorDisplay();
-                            this.updateSensorStats();
-                            
-                            // Check if any sensor detects fire
-                            if (this.sensorStates.includes(0)) {
-                                this.handleFireDetection();
-                            }
-                        }
-                    }
-                    
-                    // Format 2: Sensor status (e.g., "SENSORS:1,1,0")
-                    else if (trimmedLine.startsWith('SENSORS:')) {
-                        const sensorData = trimmedLine.replace('SENSORS:', '').trim();
-                        const sensorValues = sensorData.split(',').map(val => parseInt(val.trim()));
-                        
-                        if (sensorValues.length === 3) {
-                            this.sensorStates = sensorValues;
-                            this.updateSensorDisplay();
-                            this.updateSensorStats();
-                            
-                            // Check if any sensor detects fire
-                            if (this.sensorStates.includes(0)) {
-                                this.handleFireDetection();
-                            }
-                        }
-                    }
-                    
-                    // Format 3: Direct fire alert (e.g., "FIRE:D2" or "FIRE:Sensor1")
-                    else if (trimmedLine.startsWith('FIRE:')) {
-                        const fireData = trimmedLine.replace('FIRE:', '').trim();
-                        const sensorName = fireData;
-                        const sensorIndex = this.getSensorIndex(sensorName);
-                        
-                        if (sensorIndex !== -1) {
-                            // Set all sensors to normal first
-                            this.sensorStates = [1, 1, 1];
-                            // Mark the specific sensor as fire
-                            this.sensorStates[sensorIndex] = 0;
-                            
-                            this.handleFireDetection(sensorName, sensorIndex);
-                        }
-                    }
-                    
-                    // Format 4: Simple fire detection keywords
-                    else if (trimmedLine.includes('FIRE') || trimmedLine.includes('DETECTED')) {
-                        // Default to Sensor1 if no specific sensor mentioned
-                        this.sensorStates = [0, 1, 1];
-                        this.handleFireDetection('Sensor1', 0);
-                    }
-                    
-                    // Format 5: OK/READY messages
-                    else if (trimmedLine.includes('OK') || trimmedLine.includes('READY')) {
-                        console.log('Arduino ready:', trimmedLine);
-                    }
-                    
-                    // Format 6: Test messages
-                    else if (trimmedLine.includes('TEST')) {
-                        this.showNotification('Arduino Test', trimmedLine, 'info');
-                    }
-                    
-                    // Format 7: Raw analog values (e.g., "1023,512,300")
-                    else if (/^\d+,\d+,\d+$/.test(trimmedLine)) {
-                        const values = trimmedLine.split(',').map(val => parseInt(val.trim()));
-                        if (values.length === 3 && values.every(v => !isNaN(v))) {
-                            this.sensorValues = values;
-                            // Convert analog values to fire/no-fire (adjust threshold as needed)
-                            const threshold = 500; // Adjust based on your sensor
-                            this.sensorStates = values.map(v => v < threshold ? 0 : 1);
-                            this.updateSensorDisplay();
-                            this.updateSensorStats();
-                            
-                            // Check if any sensor detects fire
-                            if (this.sensorStates.includes(0)) {
-                                this.handleFireDetection();
-                            }
-                        }
-                    }
-                    
-                    // Format 8: Single value per line (e.g., "1" or "0")
-                    else if (/^\d+$/.test(trimmedLine)) {
-                        const value = parseInt(trimmedLine);
-                        // If it's 0, assume fire detected
-                        if (value === 0) {
-                            this.sensorStates = [0, 1, 1];
-                            this.handleFireDetection('Sensor1', 0);
-                        }
-                    }
-                });
-                
-            } catch (error) {
-                console.error('Error parsing Arduino data:', error);
-                this.addLog(`Error parsing Arduino data: ${error.message}`, 'info');
-            }
-        }
-        
-        getSensorIndex(sensorName) {
-            const sensorMap = {
-                'D2': 0, 'Sensor1': 0, 'S1': 0, '2': 0,
-                'D3': 1, 'Sensor2': 1, 'S2': 1, '3': 1,
-                'D4': 2, 'Sensor3': 2, 'S3': 2, '4': 2
-            };
-            return sensorMap[sensorName] !== undefined ? sensorMap[sensorName] : -1;
-        }
-        
-        async sendToArduino(data) {
-            if (this.writer && this.connected) {
+            
+            parseArduinoData(data) {
                 try {
-                    await this.writer.write(data);
-                    console.log('📤 Sent to Arduino:', data.trim());
-                    return true;
+                    // Clean the data - remove carriage returns and extra whitespace
+                    const cleanData = data.replace(/\r/g, '');
+                    
+                    // Split data by newlines
+                    const lines = cleanData.split('\n').filter(line => line.trim() !== '');
+                    
+                    lines.forEach(line => {
+                        const trimmedLine = line.trim();
+                        console.log('📨 Arduino Data:', trimmedLine);
+                        
+                        // Parse different data formats from Arduino
+                        
+                        // Format 1: Simple comma-separated values (e.g., "1,0,1")
+                        if (/^\d+,\d+,\d+$/.test(trimmedLine)) {
+                            const sensorValues = trimmedLine.split(',').map(val => {
+                                const num = parseInt(val);
+                                // For flame sensors: 0 = fire, 1 = no fire
+                                // Adjust threshold if needed
+                                return num === 0 ? 0 : 1;
+                            });
+                            
+                            if (sensorValues.length === 3) {
+                                this.sensorStates = sensorValues;
+                                this.updateSensorDisplay();
+                                this.updateSensorStats();
+                                
+                                // Check if any flame sensor detects fire
+                                for (let i = 0; i < this.sensorStates.length; i++) {
+                                    if (this.sensorStates[i] === 0) {
+                                        this.handleFireDetection(this.flameSensors[i], i);
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Format 2: Sensor status (e.g., "SENSORS:1,1,0")
+                        else if (trimmedLine.startsWith('SENSORS:')) {
+                            const sensorData = trimmedLine.replace('SENSORS:', '').trim();
+                            const sensorValues = sensorData.split(',').map(val => parseInt(val.trim()));
+                            
+                            if (sensorValues.length === 3) {
+                                this.sensorStates = sensorValues;
+                                this.updateSensorDisplay();
+                                this.updateSensorStats();
+                                
+                                // Check if any flame sensor detects fire
+                                for (let i = 0; i < this.sensorStates.length; i++) {
+                                    if (this.sensorStates[i] === 0) {
+                                        this.handleFireDetection(this.flameSensors[i], i);
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Format 3: Direct fire alert (e.g., "FIRE:D2" or "FIRE:1")
+                        else if (trimmedLine.startsWith('FIRE:')) {
+                            const fireData = trimmedLine.replace('FIRE:', '').trim();
+                            let sensorIndex = -1;
+                            
+                            // Try to parse sensor number
+                            if (fireData === 'D2' || fireData === '1' || fireData === 'Sensor1') {
+                                sensorIndex = 0;
+                            } else if (fireData === 'D3' || fireData === '2' || fireData === 'Sensor2') {
+                                sensorIndex = 1;
+                            } else if (fireData === 'D4' || fireData === '3' || fireData === 'Sensor3') {
+                                sensorIndex = 2;
+                            }
+                            
+                            if (sensorIndex !== -1) {
+                                // Set all sensors to normal first
+                                this.sensorStates = [1, 1, 1];
+                                // Mark the specific sensor as fire
+                                this.sensorStates[sensorIndex] = 0;
+                                
+                                this.handleFireDetection(this.flameSensors[sensorIndex], sensorIndex);
+                            }
+                        }
+                        
+                        // Format 4: Simple fire detection keywords
+                        else if (trimmedLine.includes('FIRE') || trimmedLine.includes('FLAME') || trimmedLine.includes('DETECTED')) {
+                            // Check which sensor is mentioned
+                            let sensorIndex = 0;
+                            if (trimmedLine.includes('2') || trimmedLine.includes('D3')) sensorIndex = 1;
+                            if (trimmedLine.includes('3') || trimmedLine.includes('D4')) sensorIndex = 2;
+                            
+                            this.sensorStates = [1, 1, 1];
+                            this.sensorStates[sensorIndex] = 0;
+                            this.handleFireDetection(this.flameSensors[sensorIndex], sensorIndex);
+                        }
+                        
+                        // Format 5: OK/READY messages
+                        else if (trimmedLine.includes('OK') || trimmedLine.includes('READY')) {
+                            console.log('Arduino status:', trimmedLine);
+                        }
+                        
+                        // Format 6: Raw analog values (e.g., "1023,512,300")
+                        else if (/^\d+,\d+,\d+$/.test(trimmedLine)) {
+                            const values = trimmedLine.split(',').map(val => parseInt(val.trim()));
+                            if (values.length === 3 && values.every(v => !isNaN(v))) {
+                                this.sensorValues = values;
+                                // Convert analog values to fire/no-fire for flame sensors
+                                // Lower values = fire detected for flame sensors
+                                const threshold = 500; // Adjust based on your flame sensor
+                                this.sensorStates = values.map(v => v < threshold ? 0 : 1);
+                                this.updateSensorDisplay();
+                                this.updateSensorStats();
+                                
+                                // Check if any flame sensor detects fire
+                                for (let i = 0; i < this.sensorStates.length; i++) {
+                                    if (this.sensorStates[i] === 0) {
+                                        this.handleFireDetection(this.flameSensors[i], i);
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Format 7: Single value per line indicating sensor state
+                        else if (/^[01]$/.test(trimmedLine)) {
+                            const value = parseInt(trimmedLine);
+                            // If it's 0, assume fire detected on first sensor
+                            if (value === 0) {
+                                this.sensorStates = [0, 1, 1];
+                                this.handleFireDetection(this.flameSensors[0], 0);
+                            }
+                        }
+                        
+                        // Format 8: Sensor-specific data (e.g., "S1:0" or "FLAME1:1")
+                        else if (/^(S[123]|FLAME[123]|D[234]):[01]$/i.test(trimmedLine)) {
+                            const parts = trimmedLine.split(':');
+                            const sensorName = parts[0].toUpperCase();
+                            const sensorState = parseInt(parts[1]);
+                            
+                            let sensorIndex = -1;
+                            if (sensorName.includes('1') || sensorName === 'D2') sensorIndex = 0;
+                            else if (sensorName.includes('2') || sensorName === 'D3') sensorIndex = 1;
+                            else if (sensorName.includes('3') || sensorName === 'D4') sensorIndex = 2;
+                            
+                            if (sensorIndex !== -1) {
+                                this.sensorStates[sensorIndex] = sensorState;
+                                this.updateSensorDisplay();
+                                this.updateSensorStats();
+                                
+                                if (sensorState === 0) {
+                                    this.handleFireDetection(this.flameSensors[sensorIndex], sensorIndex);
+                                }
+                            }
+                        }
+                    });
+                    
                 } catch (error) {
-                    console.error('Error sending to Arduino:', error);
-                    this.showNotification('Arduino Error', 'Failed to send command', 'warning');
+                    console.error('Error parsing Arduino data:', error);
+                    this.addLog(`Error parsing Arduino data: ${error.message}`, 'info');
+                }
+            }
+            
+            async sendToArduino(data) {
+                if (this.writer && this.connected) {
+                    try {
+                        await this.writer.write(data);
+                        console.log('📤 Sent to Arduino:', data.trim());
+                        return true;
+                    } catch (error) {
+                        console.error('Error sending to Arduino:', error);
+                        this.showNotification('Arduino Error', 'Failed to send command', 'warning');
+                        return false;
+                    }
+                } else {
+                    this.showNotification('Arduino Error', 'Arduino not connected', 'warning');
                     return false;
                 }
-            } else {
-                this.showNotification('Arduino Error', 'Arduino not connected', 'warning');
-                return false;
             }
-        }
-        
-        handleDisconnect() {
-            console.log('🔌 Arduino disconnected');
-            this.connected = false;
-            this.reading = false;
-            this.updateConnectionStatus('disconnected');
             
-            this.showNotification('Arduino Disconnected', 
-                'Arduino was disconnected', 
-                'warning');
-            this.addLog('Arduino disconnected', 'arduino');
-            
-            // Clear auto-connect preference
-            localStorage.removeItem('arduino_auto_connect');
-            
-            // Try to reconnect
-            if (this.autoReconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
-                this.reconnectAttempts++;
-                setTimeout(() => {
-                    if (!this.connected) {
-                        console.log('Attempting to reconnect...');
-                        this.connectSerial();
-                    }
-                }, 3000 * this.reconnectAttempts);
-            }
-        }
-        
-        async disconnect() {
-            // Clear auto-connect preference
-            localStorage.removeItem('arduino_auto_connect');
-            
-            if (this.reader) {
+            handleDisconnect() {
+                console.log('🔌 Arduino disconnected');
+                this.connected = false;
                 this.reading = false;
-                await this.reader.cancel();
-                this.reader = null;
+                this.updateConnectionStatus('disconnected');
+                
+                this.showNotification('Arduino Disconnected', 
+                    'Arduino was disconnected', 
+                    'warning');
+                this.addLog('Arduino disconnected', 'arduino');
+                
+                // Clear auto-connect preference
+                localStorage.removeItem('arduino_auto_connect');
+                
+                // Try to reconnect
+                if (this.autoReconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
+                    this.reconnectAttempts++;
+                    setTimeout(() => {
+                        if (!this.connected) {
+                            console.log('Attempting to reconnect...');
+                            this.connectSerial();
+                        }
+                    }, 3000 * this.reconnectAttempts);
+                }
             }
             
-            if (this.writer) {
-                await this.writer.close();
-                this.writer = null;
-            }
-            
-            if (this.port) {
-                await this.port.close();
-                this.port = null;
-            }
-            
-            this.connected = false;
-            this.updateConnectionStatus('disconnected');
-            
-            this.showNotification('Arduino Disconnected', 
-                'Disconnected from Arduino', 
-                'info');
-            this.addLog('Arduino manually disconnected', 'arduino');
-        }
-        
-        handleFireDetection(sensorName = 'Unknown Sensor', sensorIndex = 0) {
-            const now = Date.now();
-            
-            // Check if enough time has passed since last alert (NO COOLDOWN - always triggers)
-            // this.fireAlertCooldown is set to 0, so this will always be true
-            if (now - this.lastFireAlertTime >= this.fireAlertCooldown) {
-                console.log('🚨 FIRE DETECTED from Arduino:', sensorName);
+            async disconnect() {
+                // Clear auto-connect preference
+                localStorage.removeItem('arduino_auto_connect');
                 
-                this.fireDetected = true;
-                this.fireLocation = sensorName;
-                this.lastFireAlertTime = now;
-                
-                // Update sensor display
-                this.updateSensorDisplay();
-                
-                // Update fire location in modal
-                const fireLocationElement = document.getElementById('alertLocation');
-                if (fireLocationElement) {
-                    fireLocationElement.textContent = `Arduino: ${sensorName}`;
+                if (this.reader) {
+                    this.reading = false;
+                    await this.reader.cancel();
+                    this.reader = null;
                 }
                 
-                // Update fire size estimate
+                if (this.writer) {
+                    await this.writer.close();
+                    this.writer = null;
+                }
+                
+                if (this.port) {
+                    await this.port.close();
+                    this.port = null;
+                }
+                
+                this.connected = false;
+                this.updateConnectionStatus('disconnected');
+                
+                this.showNotification('Arduino Disconnected', 
+                    'Disconnected from Arduino', 
+                    'info');
+                this.addLog('Arduino manually disconnected', 'arduino');
+            }
+            
+            handleFireDetection(sensorName = 'Flame Sensor 1', sensorIndex = 0) {
+                const now = Date.now();
+                
+                // NO COOLDOWN - Always trigger fire detection
+                // this.fireAlertCooldown is set to 0, so this will always be true
+                if (now - this.lastFireAlertTime >= this.fireAlertCooldown) {
+                    console.log(`🚨 FIRE DETECTED on ${sensorName}`);
+                    
+                    this.fireDetected = true;
+                    this.fireLocation = sensorName;
+                    this.lastFireAlertTime = now;
+                    
+                    // Update sensor display
+                    this.updateSensorDisplay();
+                    
+                    // Update fire location in modal
+                    const fireLocationElement = document.getElementById('alertLocation');
+                    if (fireLocationElement) {
+                        fireLocationElement.textContent = `Arduino: ${sensorName}`;
+                    }
+                    
+                    // Update fire size estimate based on number of sensors detecting fire
+                    const fireSensors = this.sensorStates.filter(state => state === 0).length;
+                    let fireSize = 'SMALL';
+                    if (fireSensors >= 2) fireSize = 'MEDIUM';
+                    if (fireSensors >= 3) fireSize = 'LARGE';
+                    
+                    const fireSizeElement = document.getElementById('alertSeverity');
+                    if (fireSizeElement) {
+                        fireSizeElement.textContent = fireSize;
+                        fireSizeElement.style.color = fireSize === 'LARGE' ? 'var(--emergency-red)' : 
+                                                     fireSize === 'MEDIUM' ? 'var(--hazard-yellow)' : 
+                                                     'var(--fire-orange)';
+                    }
+                    
+                    // Show Arduino alert (ALWAYS SHOW - NO COOLDOWN)
+                    this.showArduinoFireAlert(sensorName);
+                    
+                    // Trigger the fire alert in main app (ALWAYS - NO COOLDOWN)
+                    if (typeof app !== 'undefined' && app.handleFireDetection) {
+                        app.handleFireDetection(sensorName);
+                    }
+                    
+                    // Add log entry
+                    const sensorInfo = this.sensorStates.map((state, i) => 
+                        `${this.flameSensors[i]}: ${state === 0 ? '🔥 FIRE' : '✓ OK'}`
+                    ).join(', ');
+                    
+                    this.addLog(`🔥 ${sensorName} DETECTED FIRE! [${sensorInfo}]`, 'alert');
+                }
+            }
+            
+            showArduinoFireAlert(sensorName) {
+                const alertElement = document.getElementById('arduinoFireAlert');
+                const locationElement = document.getElementById('arduinoAlertLocation');
+                
+                if (alertElement && locationElement) {
+                    locationElement.textContent = `${sensorName} - FIRE DETECTED`;
+                    alertElement.style.display = 'block';
+                    
+                    // Auto-hide after 10 seconds to prevent visual clutter
+                    setTimeout(() => {
+                        if (alertElement.style.display === 'block') {
+                            alertElement.style.display = 'none';
+                        }
+                    }, 10000);
+                }
+            }
+            
+            updateConnectionStatus(status) {
+                const dot = document.getElementById('arduinoStatusDot');
+                const statusText = document.getElementById('arduinoStatusText');
+                const tile = document.getElementById('arduinoTile');
+                const tileText = document.getElementById('arduinoTileText');
+                const sensorDisplay = document.getElementById('sensorDisplay');
+                
+                switch(status) {
+                    case 'connecting':
+                        dot.className = 'status-dot warning';
+                        statusText.textContent = 'ARDUINO: CONNECTING...';
+                        tile.className = 'status-tile warning';
+                        tileText.textContent = 'CONNECTING...';
+                        tileText.innerHTML = 'CONNECTING...<br><small>Please wait</small>';
+                        sensorDisplay.style.display = 'none';
+                        break;
+                        
+                    case 'connected':
+                        dot.className = 'status-dot safe';
+                        statusText.textContent = 'ARDUINO: CONNECTED';
+                        tile.className = 'status-tile safe';
+                        tileText.textContent = 'ARDUINO ONLINE';
+                        tileText.innerHTML = 'ARDUINO ONLINE<br><small>Click to disconnect</small>';
+                        sensorDisplay.style.display = 'grid';
+                        break;
+                        
+                    case 'disconnected':
+                        dot.className = 'status-dot warning';
+                        statusText.textContent = 'ARDUINO: OFFLINE';
+                        tile.className = 'status-tile warning';
+                        tileText.textContent = 'ARDUINO OFFLINE';
+                        tileText.innerHTML = 'ARDUINO OFFLINE<br><small>Click to connect</small>';
+                        sensorDisplay.style.display = 'none';
+                        break;
+                        
+                    case 'error':
+                        dot.className = 'status-dot warning';
+                        statusText.textContent = 'ARDUINO: ERROR';
+                        tile.className = 'status-tile warning';
+                        tileText.textContent = 'CONNECTION ERROR';
+                        tileText.innerHTML = 'CONNECTION ERROR<br><small>Click to retry</small>';
+                        sensorDisplay.style.display = 'none';
+                        break;
+                }
+            }
+            
+            updateSensorDisplay() {
+                for (let i = 0; i < 3; i++) {
+                    const element = document.getElementById(`sensor${i + 1}Value`);
+                    if (element) {
+                        const state = this.sensorStates[i] || 1;
+                        
+                        // Update value and status
+                        if (state === 0) {
+                            // Fire detected
+                            element.textContent = '🔥 FIRE';
+                            element.className = 'sensor-value critical';
+                            element.title = `${this.flameSensors[i]}: FIRE DETECTED`;
+                        } else {
+                            // No fire
+                            element.textContent = '✓ OK';
+                            element.className = 'sensor-value safe';
+                            element.title = `${this.flameSensors[i]}: Normal`;
+                        }
+                    }
+                }
+                
+                // Update fire status tile
                 const fireSensors = this.sensorStates.filter(state => state === 0).length;
-                let fireSize = 'SMALL';
-                if (fireSensors >= 2) fireSize = 'MEDIUM';
-                if (fireSensors >= 3) fireSize = 'LARGE';
+                const fireTile = document.getElementById('fireStatusTile');
+                const fireText = document.getElementById('fireStatusText');
                 
-                const fireSizeElement = document.getElementById('alertSeverity');
-                if (fireSizeElement) {
-                    fireSizeElement.textContent = fireSize;
-                    fireSizeElement.style.color = fireSize === 'LARGE' ? 'var(--emergency-red)' : 
-                                                 fireSize === 'MEDIUM' ? 'var(--hazard-yellow)' : 
-                                                 'var(--fire-orange)';
+                if (fireSensors > 0) {
+                    fireTile.className = 'status-tile critical';
+                    fireText.textContent = `FIRE x${fireSensors}`;
+                    this.fireDetected = true;
+                } else {
+                    fireTile.className = 'status-tile safe';
+                    fireText.textContent = 'NO FIRE';
+                    this.fireDetected = false;
                 }
-                
-                // Show Arduino alert (ALWAYS SHOW - NO COOLDOWN)
-                this.showArduinoFireAlert(sensorName);
-                
-                // Trigger the fire alert in main app (ALWAYS - NO COOLDOWN)
-                if (typeof app !== 'undefined' && app.handleFireDetection) {
-                    app.handleFireDetection();
-                }
-                
-                // Add log entry
-                const sensorInfo = this.sensorStates.map((state, i) => 
-                    `Sensor ${i+1}: ${state === 0 ? '🔥 FIRE' : '✓ OK'}`
-                ).join(', ');
-                
-                this.addLog(`🔥 ARDUINO FIRE DETECTED on ${sensorName} [${sensorInfo}]`, 'alert');
             }
-        }
-        
-        showArduinoFireAlert(sensorName) {
-            const alertElement = document.getElementById('arduinoFireAlert');
-            const locationElement = document.getElementById('arduinoAlertLocation');
             
-            if (alertElement && locationElement) {
-                locationElement.textContent = `Sensor: ${sensorName}`;
-                alertElement.style.display = 'block';
-                
-                // Auto-hide after 10 seconds to prevent visual clutter
-                setTimeout(() => {
-                    if (alertElement.style.display === 'block') {
-                        alertElement.style.display = 'none';
-                    }
-                }, 10000);
-            }
-        }
-        
-        updateConnectionStatus(status) {
-            const dot = document.getElementById('arduinoStatusDot');
-            const statusText = document.getElementById('arduinoStatusText');
-            const tile = document.getElementById('arduinoTile');
-            const tileText = document.getElementById('arduinoTileText');
-            const sensorDisplay = document.getElementById('sensorDisplay');
-            
-            switch(status) {
-                case 'connecting':
-                    dot.className = 'status-dot warning';
-                    statusText.textContent = 'ARDUINO: CONNECTING...';
-                    tile.className = 'status-tile warning';
-                    tileText.textContent = 'CONNECTING...';
-                    tileText.innerHTML = 'CONNECTING...<br><small>Please wait</small>';
-                    sensorDisplay.style.display = 'none';
-                    break;
-                    
-                case 'connected':
-                    dot.className = 'status-dot safe';
-                    statusText.textContent = 'ARDUINO: CONNECTED';
-                    tile.className = 'status-tile safe';
-                    tileText.textContent = 'ARDUINO ONLINE';
-                    tileText.innerHTML = 'ARDUINO ONLINE<br><small>Click to disconnect</small>';
-                    sensorDisplay.style.display = 'grid';
-                    break;
-                    
-                case 'disconnected':
-                    dot.className = 'status-dot warning';
-                    statusText.textContent = 'ARDUINO: OFFLINE';
-                    tile.className = 'status-tile warning';
-                    tileText.textContent = 'ARDUINO OFFLINE';
-                    tileText.innerHTML = 'ARDUINO OFFLINE<br><small>Click to connect</small>';
-                    sensorDisplay.style.display = 'none';
-                    break;
-                    
-                case 'error':
-                    dot.className = 'status-dot warning';
-                    statusText.textContent = 'ARDUINO: ERROR';
-                    tile.className = 'status-tile warning';
-                    tileText.textContent = 'CONNECTION ERROR';
-                    tileText.innerHTML = 'CONNECTION ERROR<br><small>Click to retry</small>';
-                    sensorDisplay.style.display = 'none';
-                    break;
-            }
-        }
-        
-        updateSensorDisplay() {
-            for (let i = 0; i < 3; i++) {
-                const element = document.getElementById(`sensor${i + 1}Value`);
-                if (element) {
-                    const state = this.sensorStates[i] || 1;
-                    
-                    // Update value and status
-                    if (state === 0) {
-                        // Fire detected
-                        element.textContent = '🔥 FIRE';
-                        element.className = 'sensor-value critical';
-                        element.title = `Sensor ${i+1} (D${i+2}): FIRE DETECTED`;
+            updateSensorStats() {
+                const fireCount = this.sensorStates.filter(state => state === 0).length;
+                const statsElement = document.getElementById('metricFires');
+                if (statsElement) {
+                    statsElement.textContent = fireCount;
+                    if (fireCount > 0) {
+                        statsElement.className = 'metric-value critical';
                     } else {
-                        // No fire
-                        element.textContent = '✓ OK';
-                        element.className = 'sensor-value safe';
-                        element.title = `Sensor ${i+1} (D${i+2}): Normal`;
+                        statsElement.className = 'metric-value safe';
                     }
                 }
             }
             
-            // Update fire status tile
-            const fireSensors = this.sensorStates.filter(state => state === 0).length;
-            const fireTile = document.getElementById('fireStatusTile');
-            const fireText = document.getElementById('fireStatusText');
-            
-            if (fireSensors > 0) {
-                fireTile.className = 'status-tile critical';
-                fireText.textContent = `FIRE x${fireSensors}`;
-                this.fireDetected = true;
-            } else {
-                fireTile.className = 'status-tile safe';
-                fireText.textContent = 'NO FIRE';
-                this.fireDetected = false;
+            showNotification(title, message, type = 'info') {
+                const notificationCenter = document.getElementById('notificationCenter');
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                
+                notification.innerHTML = `
+                    <div class="notification-title">
+                        <i class="fas fa-${type === 'critical' ? 'fire' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                        ${title}
+                    </div>
+                    <div class="notification-message">${message}</div>
+                `;
+                
+                notificationCenter.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateX(100%)';
+                    setTimeout(() => notification.remove(), 300);
+                }, 5000);
             }
-        }
-        
-        updateSensorStats() {
-            const fireCount = this.sensorStates.filter(state => state === 0).length;
-            const statsElement = document.getElementById('metricFires');
-            if (statsElement) {
-                statsElement.textContent = fireCount;
-                if (fireCount > 0) {
-                    statsElement.className = 'metric-value critical';
-                } else {
-                    statsElement.className = 'metric-value safe';
+            
+            addLog(message, type = 'info') {
+                const logContainer = document.getElementById('logContainer');
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${type}`;
+                
+                const time = new Date();
+                const timeStr = time.toLocaleTimeString('en-US', { 
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                
+                logEntry.innerHTML = `
+                    <span class="log-time">${timeStr}</span>
+                    <span class="log-message">${message}</span>
+                `;
+                
+                logContainer.appendChild(logEntry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+                
+                // Keep only last 50 log entries
+                while (logContainer.children.length > 50) {
+                    logContainer.removeChild(logContainer.firstChild);
                 }
             }
         }
-        
-        showNotification(title, message, type = 'info') {
-            const notificationCenter = document.getElementById('notificationCenter');
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            
-            notification.innerHTML = `
-                <div class="notification-title">
-                    <i class="fas fa-${type === 'critical' ? 'fire' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
-                    ${title}
-                </div>
-                <div class="notification-message">${message}</div>
-            `;
-            
-            notificationCenter.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                notification.style.transform = 'translateX(100%)';
-                setTimeout(() => notification.remove(), 300);
-            }, 5000);
-        }
-        
-        addLog(message, type = 'info') {
-            const logContainer = document.getElementById('logContainer');
-            const logEntry = document.createElement('div');
-            logEntry.className = `log-entry ${type}`;
-            
-            const time = new Date();
-            const timeStr = time.toLocaleTimeString('en-US', { 
-                hour12: false,
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            
-            logEntry.innerHTML = `
-                <span class="log-time">${timeStr}</span>
-                <span class="log-message">${message}</span>
-            `;
-            
-            logContainer.appendChild(logEntry);
-            logContainer.scrollTop = logContainer.scrollHeight;
-            
-            // Keep only last 50 log entries
-            while (logContainer.children.length > 50) {
-                logContainer.removeChild(logContainer.firstChild);
-            }
-        }
-    }
 
-    // Initialize Arduino integration
-    window.arduino = new ArduinoIntegration();
+        // Initialize Arduino integration
+        window.arduino = new ArduinoIntegration();
 
-    // === MAIN APULA APP WITH CAMERA & GALLERY ===
-    class APULAApp {
-        constructor() {
-            this.camera = { 
-                stream: null, 
-                mediaRecorder: null, 
-                isActive: false,
-                currentType: null
-            };
-            this.isRecording = false;
-            this.recordedChunks = [];
-            this.waterActive = false;
-            this.mediaGallery = [];
-            this.currentGalleryTab = 'all';
-            this.systemUptime = 0;
-            this.stats = {
-                activeCameras: 0,
-                fires: 0,
-                waterActivations: 0,
-                mediaCount: 0,
-                storageUsed: 0
-            };
-            
-            this.currentMedia = null;
-            this.currentVideo = null;
-            this.lastFireAlertTime = 0;
-            this.fireAlertCooldown = 0; // NO COOLDOWN - set to 0
-            
-            this.init();
-        }
-        
-        init() {
-            console.log('APULA Fire Command Dashboard Initialized');
-            this.loadGalleryFromStorage();
-            this.bindEvents();
-            this.startUptimeCounter();
-            this.updateGallery();
-            this.showNotification('SYSTEM ONLINE', 'Fire Command Dashboard activated', 'safe');
-            this.addLog('Emergency dashboard system initialized', 'info');
-        }
-        
-        bindEvents() {
-            // Bind camera tile click
-            document.getElementById('cameraTile').addEventListener('click', () => {
-                this.selectCamera('webcam');
-            });
-            
-            // Bind water tile click
-            document.getElementById('waterStatusTile').addEventListener('click', () => {
-                if (this.waterActive) {
-                    this.deactivateWater();
-                } else {
-                    this.activateWater();
-                }
-            });
-            
-            // Initialize camera options
-            this.initCameraOptions();
-        }
-        
-        initCameraOptions() {
-            // Set webcam as default active
-            document.getElementById('webcamBtn').classList.add('active');
-            this.camera.currentType = 'webcam';
-        }
-        
-        selectCamera(type) {
-            // Update active button
-            const buttons = document.querySelectorAll('.camera-option-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            this.camera.currentType = type;
-            
-            // Show/hide RTSP input
-            const rtspInput = document.getElementById('rtspInput');
-            if (type === 'rtsp') {
-                rtspInput.style.display = 'block';
-                this.showNotification('RTSP SELECTED', 'Enter RTSP stream URL', 'info');
-            } else {
-                rtspInput.style.display = 'none';
-                this.showNotification(`${type.toUpperCase()} SELECTED`, `Camera type set to ${type}`, 'info');
+        // === MAIN APULA APP WITH CAMERA & GALLERY ===
+        class APULAApp {
+            constructor() {
+                this.camera = { 
+                    stream: null, 
+                    mediaRecorder: null, 
+                    isActive: false,
+                    currentType: 'webcam'
+                };
+                this.isRecording = false;
+                this.recordedChunks = [];
+                this.waterActive = false;
+                this.mediaGallery = [];
+                this.currentGalleryTab = 'all';
+                this.systemUptime = 0;
+                this.stats = {
+                    activeCameras: 0,
+                    fires: 0,
+                    waterActivations: 0,
+                    mediaCount: 0,
+                    storageUsed: 0
+                };
+                
+                this.currentMedia = null;
+                this.currentVideo = null;
+                this.lastFireAlertTime = 0;
+                this.fireAlertCooldown = 0; // NO COOLDOWN - set to 0
+                
+                this.init();
             }
             
-            // Update connect button text
-            const connectBtn = document.getElementById('connectCameraBtn');
-            connectBtn.innerHTML = `<i class="fas fa-plug"></i> CONNECT ${type.toUpperCase()}`;
-            
-            this.addLog(`Camera type selected: ${type}`, 'info');
-        }
-        
-        connectRTSP() {
-            const rtspUrl = document.getElementById('rtspUrl').value;
-            if (!rtspUrl) {
-                this.showNotification('RTSP ERROR', 'Please enter RTSP URL', 'warning');
-                return;
+            init() {
+                console.log('APULA Fire Command Dashboard Initialized');
+                this.loadGalleryFromStorage();
+                this.bindEvents();
+                this.startUptimeCounter();
+                this.updateGallery();
+                this.showNotification('SYSTEM ONLINE', 'Fire Command Dashboard activated', 'safe');
+                this.addLog('Emergency dashboard system initialized', 'info');
             }
             
-            this.showNotification('RTSP CONNECTION', 'Connecting to RTSP stream...', 'info');
-            this.addLog(`Attempting to connect RTSP: ${rtspUrl}`, 'info');
-            
-            // In a real implementation, you would use a library like hls.js or flv.js
-            // For now, we'll simulate connection
-            setTimeout(() => {
-                this.showNotification('RTSP ERROR', 'RTSP streaming requires additional setup', 'warning');
-                this.addLog('RTSP connection failed - requires streaming server setup', 'info');
-            }, 2000);
-        }
-        
-        async connectCamera() {
-            if (this.camera.isActive) {
-                this.showNotification('CAMERA', 'Camera already active', 'safe');
-                return;
-            }
-            
-            if (this.camera.currentType !== 'webcam') {
-                if (this.camera.currentType === 'rtsp') {
-                    this.connectRTSP();
-                } else {
-                    this.showNotification('CAMERA TYPE', `${this.camera.currentType} cameras require additional setup`, 'warning');
-                }
-                return;
-            }
-            
-            this.showLoading(true);
-            
-            try {
-                // Request camera with audio for recording
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { 
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 },
-                        frameRate: { ideal: 30 }
-                    },
-                    audio: {
-                        echoCancellation: true,
-                        noiseSuppression: true,
-                        sampleRate: 44100
+            bindEvents() {
+                // Bind camera tile click
+                document.getElementById('cameraTile').addEventListener('click', () => {
+                    this.connectCamera();
+                });
+                
+                // Bind water tile click
+                document.getElementById('waterStatusTile').addEventListener('click', () => {
+                    if (this.waterActive) {
+                        this.deactivateWater();
+                    } else {
+                        this.activateWater();
                     }
                 });
                 
+                // Initialize camera options
+                this.initCameraOptions();
+            }
+            
+            initCameraOptions() {
+                // Set webcam as default active
+                document.getElementById('webcamBtn').classList.add('active');
+                this.camera.currentType = 'webcam';
+            }
+            
+            selectCamera(type) {
+                // Update active button
+                const buttons = document.querySelectorAll('.camera-option-btn');
+                buttons.forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+                
+                this.camera.currentType = type;
+                
+                // Show/hide RTSP input
+                const rtspInput = document.getElementById('rtspInput');
+                if (type === 'rtsp') {
+                    rtspInput.style.display = 'block';
+                    this.showNotification('RTSP SELECTED', 'Enter RTSP stream URL', 'info');
+                } else {
+                    rtspInput.style.display = 'none';
+                    this.showNotification(`${type.toUpperCase()} SELECTED`, `Camera type set to ${type}`, 'info');
+                }
+                
+                // Update connect button text
+                const connectBtn = document.getElementById('connectCameraBtn');
+                connectBtn.innerHTML = `<i class="fas fa-plug"></i> CONNECT ${type.toUpperCase()}`;
+                
+                this.addLog(`Camera type selected: ${type}`, 'info');
+            }
+            
+            connectRTSP() {
+                const rtspUrl = document.getElementById('rtspUrl').value;
+                if (!rtspUrl) {
+                    this.showNotification('RTSP ERROR', 'Please enter RTSP URL', 'warning');
+                    return;
+                }
+                
+                this.showNotification('RTSP CONNECTION', 'Connecting to RTSP stream...', 'info');
+                this.addLog(`Attempting to connect RTSP: ${rtspUrl}`, 'info');
+                
+                // Show message about RTSP requirements
+                this.showNotification('RTSP SETUP', 'RTSP requires additional server setup. Using webcam simulation instead.', 'warning');
+                
+                // Simulate connection for demo
+                setTimeout(() => {
+                    this.simulateCameraConnection('RTSP Camera');
+                }, 1000);
+            }
+            
+            async connectCamera() {
+                if (this.camera.isActive) {
+                    this.showNotification('CAMERA', 'Camera already active', 'safe');
+                    return;
+                }
+                
+                this.showLoading(true);
+                
+                try {
+                    // Check camera type and handle accordingly
+                    switch(this.camera.currentType) {
+                        case 'webcam':
+                            await this.connectWebcam();
+                            break;
+                        case 'rtsp':
+                            this.connectRTSP();
+                            break;
+                        case 'bluetooth':
+                        case 'ip':
+                        case 'wifi':
+                            this.showNotification('CAMERA TYPE', 
+                                `${this.camera.currentType.toUpperCase()} camera connection requires additional hardware setup. Using webcam instead.`, 
+                                'warning');
+                            await this.connectWebcam();
+                            break;
+                        default:
+                            await this.connectWebcam();
+                    }
+                    
+                } catch (error) {
+                    console.error('Camera connection error:', error);
+                    this.showNotification('CAMERA ERROR', 
+                        `Failed to access camera: ${error.message}`, 
+                        'warning');
+                    this.addLog(`Failed to connect camera: ${error.message}`, 'info');
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+            
+            async connectWebcam() {
+                try {
+                    // Request camera with audio for recording
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: { 
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 },
+                            frameRate: { ideal: 30 }
+                        },
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            sampleRate: 44100
+                        }
+                    });
+                    
+                    const videoElement = document.getElementById('cameraFeed');
+                    videoElement.srcObject = stream;
+                    videoElement.style.display = 'block';
+                    
+                    const cameraOverlay = document.getElementById('cameraOverlay');
+                    cameraOverlay.style.display = 'none';
+                    
+                    const cameraLabel = document.getElementById('cameraFeedLabel');
+                    cameraLabel.textContent = 'WEBCAM FEED - LIVE';
+                    
+                    this.camera.stream = stream;
+                    this.camera.isActive = true;
+                    
+                    // Setup media recorder with audio
+                    this.setupMediaRecorder(stream);
+                    
+                    this.stats.activeCameras = 1;
+                    this.updateCameraStatus();
+                    this.updateStats();
+                    
+                    this.showNotification('WEBCAM CONNECTED', 
+                        'Webcam connected successfully with audio recording capability', 
+                        'safe');
+                    this.addLog('Webcam connected successfully with audio', 'info');
+                    
+                    // Enable recording and snapshot buttons
+                    document.getElementById('recordBtn').classList.remove('disabled');
+                    document.getElementById('snapshotBtn').classList.remove('disabled');
+                    
+                    // Update camera tile
+                    const cameraTile = document.getElementById('cameraTile');
+                    const cameraTileText = document.getElementById('cameraTileText');
+                    cameraTile.className = 'status-tile safe';
+                    cameraTileText.textContent = 'WEBCAM ONLINE';
+                    
+                } catch (error) {
+                    // Fallback to simulation if webcam access is denied
+                    console.log('Webcam access denied, using simulation:', error);
+                    this.simulateCameraConnection('Webcam Simulation');
+                }
+            }
+            
+            simulateCameraConnection(cameraName) {
+                // Create a simulated camera feed
                 const videoElement = document.getElementById('cameraFeed');
+                const cameraOverlay = document.getElementById('cameraOverlay');
+                const cameraLabel = document.getElementById('cameraFeedLabel');
+                
+                // Create a canvas for simulation
+                const canvas = document.createElement('canvas');
+                canvas.width = 640;
+                canvas.height = 480;
+                const ctx = canvas.getContext('2d');
+                
+                // Create video stream from canvas
+                const stream = canvas.captureStream(30);
                 videoElement.srcObject = stream;
                 videoElement.style.display = 'block';
-                
-                const cameraOverlay = document.getElementById('cameraOverlay');
                 cameraOverlay.style.display = 'none';
+                cameraLabel.textContent = `${cameraName} - SIMULATION`;
                 
-                const cameraLabel = document.getElementById('cameraFeedLabel');
-                cameraLabel.textContent = 'LIVE CAMERA FEED';
+                // Animate the simulation
+                let frame = 0;
+                function drawSimulation() {
+                    ctx.fillStyle = '#1a1a25';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Draw scanning line
+                    const scanY = (frame % 100) * 4.8;
+                    ctx.fillStyle = 'rgba(255, 85, 0, 0.3)';
+                    ctx.fillRect(0, scanY, canvas.width, 20);
+                    
+                    // Draw grid
+                    ctx.strokeStyle = 'rgba(255, 85, 0, 0.1)';
+                    ctx.lineWidth = 1;
+                    for (let i = 0; i < canvas.width; i += 40) {
+                        ctx.beginPath();
+                        ctx.moveTo(i, 0);
+                        ctx.lineTo(i, canvas.height);
+                        ctx.stroke();
+                    }
+                    for (let i = 0; i < canvas.height; i += 40) {
+                        ctx.beginPath();
+                        ctx.moveTo(0, i);
+                        ctx.lineTo(canvas.width, i);
+                        ctx.stroke();
+                    }
+                    
+                    // Draw camera label
+                    ctx.fillStyle = 'rgba(255, 34, 0, 0.8)';
+                    ctx.font = 'bold 20px Orbitron';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(cameraName, canvas.width/2, 30);
+                    ctx.font = '14px Montserrat';
+                    ctx.fillText('Simulation Mode', canvas.width/2, 50);
+                    
+                    frame++;
+                    requestAnimationFrame(drawSimulation);
+                }
+                drawSimulation();
                 
                 this.camera.stream = stream;
                 this.camera.isActive = true;
-                
-                // Setup media recorder with audio
-                this.setupMediaRecorder(stream);
                 
                 this.stats.activeCameras = 1;
                 this.updateCameraStatus();
                 this.updateStats();
                 
-                this.showNotification('CAMERA CONNECTED', 
-                    'Camera connected successfully with audio recording capability', 
-                    'safe');
-                this.addLog('Camera connected successfully with audio', 'info');
-                
-                // Enable recording and snapshot buttons
-                document.getElementById('recordBtn').classList.remove('disabled');
-                document.getElementById('snapshotBtn').classList.remove('disabled');
+                this.showNotification('CAMERA SIMULATION', 
+                    `${cameraName} simulation active. Recording disabled in simulation mode.`, 
+                    'info');
+                this.addLog(`Camera simulation started: ${cameraName}`, 'info');
                 
                 // Update camera tile
                 const cameraTile = document.getElementById('cameraTile');
                 const cameraTileText = document.getElementById('cameraTileText');
                 cameraTile.className = 'status-tile safe';
-                cameraTileText.textContent = 'CAMERA ONLINE';
+                cameraTileText.textContent = `${cameraName.toUpperCase()}`;
                 
-            } catch (error) {
-                this.showNotification('CAMERA ERROR', 
-                    `Failed to access camera: ${error.message}`, 
-                    'warning');
-                this.addLog(`Failed to connect camera: ${error.message}`, 'info');
-            } finally {
-                this.showLoading(false);
+                // Disable recording in simulation mode
+                document.getElementById('recordBtn').classList.add('disabled');
+                document.getElementById('snapshotBtn').classList.add('disabled');
             }
-        }
-        
-        setupMediaRecorder(stream) {
-            try {
-                // Try different MIME types for better compatibility
-                const options = { 
-                    mimeType: 'video/webm;codecs=vp9,opus',
-                    videoBitsPerSecond: 2500000,
-                    audioBitsPerSecond: 128000
-                };
-                
-                // Check if the MIME type is supported
-                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                    options.mimeType = 'video/webm;codecs=vp8,opus';
-                }
-                
-                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                    options.mimeType = 'video/mp4';
-                }
-                
-                this.camera.mediaRecorder = new MediaRecorder(stream, options);
-                
-                this.camera.mediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        this.recordedChunks.push(event.data);
-                    }
-                };
-                
-                this.camera.mediaRecorder.onstop = () => {
-                    this.saveRecording();
-                };
-                
-                this.camera.mediaRecorder.onerror = (error) => {
-                    console.error('MediaRecorder error:', error);
-                    this.showNotification('RECORDING ERROR', 'Recording failed', 'warning');
-                };
-                
-            } catch (error) {
-                console.error('MediaRecorder setup error:', error);
-                // Fallback to default MediaRecorder
+            
+            setupMediaRecorder(stream) {
                 try {
-                    this.camera.mediaRecorder = new MediaRecorder(stream);
+                    // Try different MIME types for better compatibility
+                    const options = { 
+                        mimeType: 'video/webm;codecs=vp9,opus',
+                        videoBitsPerSecond: 2500000,
+                        audioBitsPerSecond: 128000
+                    };
+                    
+                    // Check if the MIME type is supported
+                    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                        options.mimeType = 'video/webm;codecs=vp8,opus';
+                    }
+                    
+                    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                        options.mimeType = 'video/mp4';
+                    }
+                    
+                    this.camera.mediaRecorder = new MediaRecorder(stream, options);
+                    
                     this.camera.mediaRecorder.ondataavailable = (event) => {
                         if (event.data.size > 0) {
                             this.recordedChunks.push(event.data);
                         }
                     };
+                    
                     this.camera.mediaRecorder.onstop = () => {
                         this.saveRecording();
                     };
-                } catch (e) {
-                    console.error('Failed to setup MediaRecorder:', e);
-                    this.showNotification('RECORDING ERROR', 'Cannot setup recording', 'warning');
+                    
+                    this.camera.mediaRecorder.onerror = (error) => {
+                        console.error('MediaRecorder error:', error);
+                        this.showNotification('RECORDING ERROR', 'Recording failed', 'warning');
+                    };
+                    
+                } catch (error) {
+                    console.error('MediaRecorder setup error:', error);
+                    // Fallback to default MediaRecorder
+                    try {
+                        this.camera.mediaRecorder = new MediaRecorder(stream);
+                        this.camera.mediaRecorder.ondataavailable = (event) => {
+                            if (event.data.size > 0) {
+                                this.recordedChunks.push(event.data);
+                            }
+                        };
+                        this.camera.mediaRecorder.onstop = () => {
+                            this.saveRecording();
+                        };
+                    } catch (e) {
+                        console.error('Failed to setup MediaRecorder:', e);
+                        this.showNotification('RECORDING ERROR', 'Cannot setup recording', 'warning');
+                    }
                 }
             }
-        }
-        
-        startRecording() {
-            if (!this.camera.isActive) {
-                this.showNotification('RECORDING ERROR', 'No camera connected', 'warning');
-                return;
-            }
             
-            if (this.isRecording) {
-                this.showNotification('RECORDING ERROR', 'Already recording', 'warning');
-                return;
-            }
-            
-            this.isRecording = true;
-            this.recordedChunks = [];
-            
-            if (this.camera.mediaRecorder) {
-                this.camera.mediaRecorder.start(1000); // Collect data every second
-            }
-            
-            // Update UI
-            document.getElementById('recordBtn').classList.add('disabled');
-            document.getElementById('stopBtn').classList.remove('disabled');
-            document.getElementById('recordBtn').classList.add('recording');
-            document.getElementById('recordingIndicator').style.display = 'flex';
-            
-            this.showNotification('RECORDING STARTED', 
-                'Recording started with audio', 
-                'safe');
-            this.addLog('Recording started with audio', 'media');
-            
-            this.stats.storageUsed += 0.1;
-            this.updateStats();
-        }
-        
-        stopRecording() {
-            if (!this.isRecording) {
-                return;
-            }
-            
-            this.isRecording = false;
-            
-            if (this.camera.mediaRecorder && this.camera.mediaRecorder.state !== 'inactive') {
-                this.camera.mediaRecorder.stop();
-            }
-            
-            // Update UI
-            document.getElementById('recordBtn').classList.remove('disabled');
-            document.getElementById('stopBtn').classList.add('disabled');
-            document.getElementById('recordBtn').classList.remove('recording');
-            document.getElementById('recordingIndicator').style.display = 'none';
-            
-            this.showNotification('RECORDING STOPPED', 
-                'Recording saved to gallery', 
-                'info');
-            this.addLog('Recording stopped', 'media');
-        }
-        
-        saveRecording() {
-            if (this.recordedChunks.length === 0) {
-                this.showNotification('RECORDING ERROR', 'No recording data found', 'warning');
-                return;
-            }
-            
-            const blob = new Blob(this.recordedChunks, {
-                type: 'video/webm'
-            });
-            
-            const sizeMB = Math.round(blob.size / (1024 * 1024) * 100) / 100;
-            const timestamp = new Date().toISOString();
-            const videoUrl = URL.createObjectURL(blob);
-            
-            // Create video element to get duration
-            const video = document.createElement('video');
-            video.src = videoUrl;
-            video.preload = 'metadata';
-            
-            video.onloadedmetadata = () => {
-                const mediaItem = {
-                    id: Date.now(),
-                    type: 'video',
-                    url: videoUrl,
-                    blob: blob,
-                    timestamp: timestamp,
-                    size: sizeMB,
-                    duration: Math.round(video.duration),
-                    title: `Recording_${new Date(timestamp).toLocaleString().replace(/[/:]/g, '-')}`,
-                    format: 'webm'
-                };
+            startRecording() {
+                if (!this.camera.isActive) {
+                    this.showNotification('RECORDING ERROR', 'No camera connected', 'warning');
+                    return;
+                }
                 
-                this.mediaGallery.push(mediaItem);
-                this.stats.mediaCount++;
-                this.stats.storageUsed += sizeMB;
-                this.updateStats();
-                this.updateGallery();
-                this.saveGalleryToStorage();
+                if (this.isRecording) {
+                    this.showNotification('RECORDING ERROR', 'Already recording', 'warning');
+                    return;
+                }
                 
-                this.showNotification('RECORDING SAVED', 
-                    `Video saved (${sizeMB} MB, ${mediaItem.duration}s)`, 
-                    'media');
-                this.addLog(`Video recording saved: ${sizeMB} MB, ${mediaItem.duration}s`, 'media');
-            };
-            
-            video.onerror = () => {
-                // If we can't get metadata, save without duration
-                const mediaItem = {
-                    id: Date.now(),
-                    type: 'video',
-                    url: videoUrl,
-                    blob: blob,
-                    timestamp: timestamp,
-                    size: sizeMB,
-                    duration: 0,
-                    title: `Recording_${new Date(timestamp).toLocaleString().replace(/[/:]/g, '-')}`,
-                    format: 'webm'
-                };
+                this.isRecording = true;
+                this.recordedChunks = [];
                 
-                this.mediaGallery.push(mediaItem);
-                this.stats.mediaCount++;
-                this.stats.storageUsed += sizeMB;
-                this.updateStats();
-                this.updateGallery();
-                this.saveGalleryToStorage();
+                if (this.camera.mediaRecorder) {
+                    this.camera.mediaRecorder.start(1000); // Collect data every second
+                }
                 
-                this.showNotification('RECORDING SAVED', 
-                    `Video saved (${sizeMB} MB)`, 
-                    'media');
-                this.addLog(`Video recording saved: ${sizeMB} MB`, 'media');
-            };
-        }
-        
-        captureSnapshot() {
-            if (!this.camera.isActive) {
-                this.showNotification('SNAPSHOT ERROR', 'Camera is not connected', 'warning');
-                return;
-            }
-            
-            const videoElement = document.getElementById('cameraFeed');
-            
-            if (!videoElement) {
-                this.showNotification('SNAPSHOT ERROR', 'Video element not found', 'warning');
-                return;
-            }
-            
-            const canvas = document.createElement('canvas');
-            canvas.width = videoElement.videoWidth || 640;
-            canvas.height = videoElement.videoHeight || 480;
-            
-            try {
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                // Update UI
+                document.getElementById('recordBtn').classList.add('disabled');
+                document.getElementById('stopBtn').classList.remove('disabled');
+                document.getElementById('recordBtn').classList.add('recording');
+                document.getElementById('recordingIndicator').style.display = 'flex';
                 
-                const timestamp = new Date().toISOString();
-                const imageUrl = canvas.toDataURL('image/jpeg', 0.9);
+                this.showNotification('RECORDING STARTED', 
+                    'Recording started with audio', 
+                    'safe');
+                this.addLog('Recording started with audio', 'media');
                 
-                const mediaItem = {
-                    id: Date.now(),
-                    type: 'photo',
-                    url: imageUrl,
-                    blob: null,
-                    timestamp: timestamp,
-                    size: 0.1, // Approximate size in MB
-                    title: `Snapshot_${new Date(timestamp).toLocaleString().replace(/[/:]/g, '-')}`,
-                    format: 'jpeg'
-                };
-                
-                this.mediaGallery.push(mediaItem);
-                this.stats.mediaCount++;
                 this.stats.storageUsed += 0.1;
                 this.updateStats();
-                this.updateGallery();
-                this.saveGalleryToStorage();
-                
-                this.showNotification('SNAPSHOT CAPTURED', 
-                    'Photo saved to gallery', 
-                    'media');
-                this.addLog('Snapshot captured and saved', 'media');
-                
-                // Visual feedback
-                this.flashCameraFeedback();
-                
-            } catch (error) {
-                this.showNotification('SNAPSHOT ERROR', 'Failed to capture image', 'warning');
-                console.error('Snapshot error:', error);
             }
-        }
-        
-        flashCameraFeedback() {
-            const flash = document.createElement('div');
-            flash.style.position = 'absolute';
-            flash.style.top = '0';
-            flash.style.left = '0';
-            flash.style.width = '100%';
-            flash.style.height = '100%';
-            flash.style.background = 'rgba(255, 255, 255, 0.8)';
-            flash.style.pointerEvents = 'none';
-            flash.style.zIndex = '100';
-            flash.style.animation = 'fadeOut 0.3s ease forwards';
             
-            const cameraFeed = document.querySelector('.camera-feed');
-            cameraFeed.appendChild(flash);
-            
-            setTimeout(() => {
-                if (flash.parentNode) {
-                    flash.remove();
+            stopRecording() {
+                if (!this.isRecording) {
+                    return;
                 }
-            }, 300);
-        }
-        
-        activateWater() {
-            if (this.waterActive) {
-                this.showNotification('WATER SYSTEM', 'Already active', 'warning');
-                return;
-            }
-            
-            this.waterActive = true;
-            this.stats.waterActivations++;
-            
-            const waterTile = document.getElementById('waterStatusTile');
-            const waterText = document.getElementById('waterStatusText');
-            waterTile.className = 'status-tile safe';
-            waterText.textContent = 'WATER ACTIVE';
-            
-            document.getElementById('metricWater').textContent = this.stats.waterActivations;
-            document.getElementById('activateWaterBtn').classList.add('disabled');
-            
-            this.showNotification('WATER SYSTEM ACTIVATED', 
-                'Water system activated', 
-                'safe');
-            this.addLog('Water system activated', 'water');
-            this.updateStats();
-            
-            // Visual water effect
-            const waterEffect = document.createElement('div');
-            waterEffect.style.position = 'fixed';
-            waterEffect.style.top = '0';
-            waterEffect.style.left = '0';
-            waterEffect.style.width = '100%';
-            waterEffect.style.height = '100%';
-            waterEffect.style.background = 'radial-gradient(circle, rgba(0,168,255,0.1) 0%, transparent 70%)';
-            waterEffect.style.pointerEvents = 'none';
-            waterEffect.style.zIndex = '9999';
-            waterEffect.style.animation = 'fadeOut 2s forwards';
-            document.body.appendChild(waterEffect);
-            
-            // Auto-stop water after 10 seconds
-            setTimeout(() => {
-                this.deactivateWater();
-            }, 10000);
-        }
-        
-        deactivateWater() {
-            if (!this.waterActive) return;
-            
-            this.waterActive = false;
-            
-            const waterTile = document.getElementById('waterStatusTile');
-            const waterText = document.getElementById('waterStatusText');
-            waterTile.className = 'status-tile';
-            waterText.textContent = 'WATER READY';
-            
-            document.getElementById('activateWaterBtn').classList.remove('disabled');
-            
-            this.showNotification('WATER SYSTEM', 'Deactivated', 'info');
-            this.addLog('Water system deactivated', 'water');
-        }
-        
-        emergencyStop() {
-            if (confirm('⚠️ EMERGENCY STOP\n\nActivate emergency shutdown?')) {
-                this.waterActive = false;
+                
                 this.isRecording = false;
                 
-                // Stop recording if active
-                if (this.camera.mediaRecorder && this.camera.mediaRecorder.state === 'recording') {
+                if (this.camera.mediaRecorder && this.camera.mediaRecorder.state !== 'inactive') {
                     this.camera.mediaRecorder.stop();
                 }
                 
-                // Reset all status
-                const fireTile = document.getElementById('fireStatusTile');
-                const fireText = document.getElementById('fireStatusText');
-                fireTile.className = 'status-tile';
-                fireText.textContent = 'NO FIRE';
+                // Update UI
+                document.getElementById('recordBtn').classList.remove('disabled');
+                document.getElementById('stopBtn').classList.add('disabled');
+                document.getElementById('recordBtn').classList.remove('recording');
+                document.getElementById('recordingIndicator').style.display = 'none';
+                
+                this.showNotification('RECORDING STOPPED', 
+                    'Recording saved to gallery', 
+                    'info');
+                this.addLog('Recording stopped', 'media');
+            }
+            
+            saveRecording() {
+                if (this.recordedChunks.length === 0) {
+                    this.showNotification('RECORDING ERROR', 'No recording data found', 'warning');
+                    return;
+                }
+                
+                const blob = new Blob(this.recordedChunks, {
+                    type: 'video/webm'
+                });
+                
+                const sizeMB = Math.round(blob.size / (1024 * 1024) * 100) / 100;
+                const timestamp = new Date().toISOString();
+                const videoUrl = URL.createObjectURL(blob);
+                
+                // Create video element to get duration
+                const video = document.createElement('video');
+                video.src = videoUrl;
+                video.preload = 'metadata';
+                
+                video.onloadedmetadata = () => {
+                    const mediaItem = {
+                        id: Date.now(),
+                        type: 'video',
+                        url: videoUrl,
+                        blob: blob,
+                        timestamp: timestamp,
+                        size: sizeMB,
+                        duration: Math.round(video.duration),
+                        title: `Recording_${new Date(timestamp).toLocaleString().replace(/[/:]/g, '-')}`,
+                        format: 'webm'
+                    };
+                    
+                    this.mediaGallery.push(mediaItem);
+                    this.stats.mediaCount++;
+                    this.stats.storageUsed += sizeMB;
+                    this.updateStats();
+                    this.updateGallery();
+                    this.saveGalleryToStorage();
+                    
+                    this.showNotification('RECORDING SAVED', 
+                        `Video saved (${sizeMB} MB, ${mediaItem.duration}s)`, 
+                        'media');
+                    this.addLog(`Video recording saved: ${sizeMB} MB, ${mediaItem.duration}s`, 'media');
+                };
+                
+                video.onerror = () => {
+                    // If we can't get metadata, save without duration
+                    const mediaItem = {
+                        id: Date.now(),
+                        type: 'video',
+                        url: videoUrl,
+                        blob: blob,
+                        timestamp: timestamp,
+                        size: sizeMB,
+                        duration: 0,
+                        title: `Recording_${new Date(timestamp).toLocaleString().replace(/[/:]/g, '-')}`,
+                        format: 'webm'
+                    };
+                    
+                    this.mediaGallery.push(mediaItem);
+                    this.stats.mediaCount++;
+                    this.stats.storageUsed += sizeMB;
+                    this.updateStats();
+                    this.updateGallery();
+                    this.saveGalleryToStorage();
+                    
+                    this.showNotification('RECORDING SAVED', 
+                        `Video saved (${sizeMB} MB)`, 
+                        'media');
+                    this.addLog(`Video recording saved: ${sizeMB} MB`, 'media');
+                };
+            }
+            
+            captureSnapshot() {
+                if (!this.camera.isActive) {
+                    this.showNotification('SNAPSHOT ERROR', 'Camera is not connected', 'warning');
+                    return;
+                }
+                
+                const videoElement = document.getElementById('cameraFeed');
+                
+                if (!videoElement) {
+                    this.showNotification('SNAPSHOT ERROR', 'Video element not found', 'warning');
+                    return;
+                }
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = videoElement.videoWidth || 640;
+                canvas.height = videoElement.videoHeight || 480;
+                
+                try {
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                    
+                    const timestamp = new Date().toISOString();
+                    const imageUrl = canvas.toDataURL('image/jpeg', 0.9);
+                    
+                    const mediaItem = {
+                        id: Date.now(),
+                        type: 'photo',
+                        url: imageUrl,
+                        blob: null,
+                        timestamp: timestamp,
+                        size: 0.1, // Approximate size in MB
+                        title: `Snapshot_${new Date(timestamp).toLocaleString().replace(/[/:]/g, '-')}`,
+                        format: 'jpeg'
+                    };
+                    
+                    this.mediaGallery.push(mediaItem);
+                    this.stats.mediaCount++;
+                    this.stats.storageUsed += 0.1;
+                    this.updateStats();
+                    this.updateGallery();
+                    this.saveGalleryToStorage();
+                    
+                    this.showNotification('SNAPSHOT CAPTURED', 
+                        'Photo saved to gallery', 
+                        'media');
+                    this.addLog('Snapshot captured and saved', 'media');
+                    
+                    // Visual feedback
+                    this.flashCameraFeedback();
+                    
+                } catch (error) {
+                    this.showNotification('SNAPSHOT ERROR', 'Failed to capture image', 'warning');
+                    console.error('Snapshot error:', error);
+                }
+            }
+            
+            flashCameraFeedback() {
+                const flash = document.createElement('div');
+                flash.style.position = 'absolute';
+                flash.style.top = '0';
+                flash.style.left = '0';
+                flash.style.width = '100%';
+                flash.style.height = '100%';
+                flash.style.background = 'rgba(255, 255, 255, 0.8)';
+                flash.style.pointerEvents = 'none';
+                flash.style.zIndex = '100';
+                flash.style.animation = 'fadeOut 0.3s ease forwards';
+                
+                const cameraFeed = document.querySelector('.camera-feed');
+                cameraFeed.appendChild(flash);
+                
+                setTimeout(() => {
+                    if (flash.parentNode) {
+                        flash.remove();
+                    }
+                }, 300);
+            }
+            
+            activateWater() {
+                if (this.waterActive) {
+                    this.showNotification('WATER SYSTEM', 'Already active', 'warning');
+                    return;
+                }
+                
+                this.waterActive = true;
+                this.stats.waterActivations++;
+                
+                const waterTile = document.getElementById('waterStatusTile');
+                const waterText = document.getElementById('waterStatusText');
+                waterTile.className = 'status-tile safe';
+                waterText.textContent = 'WATER ACTIVE';
+                
+                document.getElementById('metricWater').textContent = this.stats.waterActivations;
+                document.getElementById('activateWaterBtn').classList.add('disabled');
+                
+                this.showNotification('WATER SYSTEM ACTIVATED', 
+                    'Water system activated', 
+                    'safe');
+                this.addLog('Water system activated', 'water');
+                this.updateStats();
+                
+                // Visual water effect
+                const waterEffect = document.createElement('div');
+                waterEffect.style.position = 'fixed';
+                waterEffect.style.top = '0';
+                waterEffect.style.left = '0';
+                waterEffect.style.width = '100%';
+                waterEffect.style.height = '100%';
+                waterEffect.style.background = 'radial-gradient(circle, rgba(0,168,255,0.1) 0%, transparent 70%)';
+                waterEffect.style.pointerEvents = 'none';
+                waterEffect.style.zIndex = '9999';
+                waterEffect.style.animation = 'fadeOut 2s forwards';
+                document.body.appendChild(waterEffect);
+                
+                // Auto-stop water after 10 seconds
+                setTimeout(() => {
+                    this.deactivateWater();
+                }, 10000);
+            }
+            
+            deactivateWater() {
+                if (!this.waterActive) return;
+                
+                this.waterActive = false;
                 
                 const waterTile = document.getElementById('waterStatusTile');
                 const waterText = document.getElementById('waterStatusText');
                 waterTile.className = 'status-tile';
                 waterText.textContent = 'WATER READY';
                 
-                // Reset recording UI
-                document.getElementById('recordBtn').classList.remove('disabled', 'recording');
-                document.getElementById('stopBtn').classList.add('disabled');
-                document.getElementById('recordingIndicator').style.display = 'none';
+                document.getElementById('activateWaterBtn').classList.remove('disabled');
                 
-                this.showNotification('EMERGENCY STOP', 'All systems halted', 'warning');
-                this.addLog('EMERGENCY STOP activated - All systems halted', 'alert');
-                
-                // Stop any active alarm
-                this.stopAlarmSound();
+                this.showNotification('WATER SYSTEM', 'Deactivated', 'info');
+                this.addLog('Water system deactivated', 'water');
             }
-        }
-        
-        handleFireDetection() {
-            const now = Date.now();
             
-            // NO COOLDOWN - Always trigger fire detection
-            // this.fireAlertCooldown is set to 0, so this will always be true
-            if (now - this.lastFireAlertTime >= this.fireAlertCooldown) {
-                // Update fire statistics
-                this.stats.fires++;
-                this.updateStats();
-                
-                // Show emergency alert
-                this.showEmergencyAlert();
-                
-                // Play alarm sound
-                this.playAlarmSound();
-                
-                this.showNotification('FIRE EMERGENCY', 'Fire detected!', 'critical');
-                
-                // Auto-activate water after 2 seconds
-                setTimeout(() => {
-                    this.activateWater();
-                }, 2000);
-                
-                this.lastFireAlertTime = now;
-            }
-        }
-        
-        showEmergencyAlert() {
-            const alertModal = document.getElementById('emergencyAlert');
-            const alertTime = document.getElementById('alertTime');
-            
-            const now = new Date();
-            alertTime.textContent = now.toLocaleTimeString('en-US', {
-                hour12: false,
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            
-            alertModal.style.display = 'flex';
-            
-            // Auto-close after 30 seconds if not acknowledged
-            this.autoAlertTimeout = setTimeout(() => {
-                if (alertModal.style.display === 'flex') {
-                    this.acknowledgeAlert();
+            emergencyStop() {
+                if (confirm('⚠️ EMERGENCY STOP\n\nActivate emergency shutdown?')) {
+                    this.waterActive = false;
+                    this.isRecording = false;
+                    
+                    // Stop recording if active
+                    if (this.camera.mediaRecorder && this.camera.mediaRecorder.state === 'recording') {
+                        this.camera.mediaRecorder.stop();
+                    }
+                    
+                    // Reset all status
+                    const fireTile = document.getElementById('fireStatusTile');
+                    const fireText = document.getElementById('fireStatusText');
+                    fireTile.className = 'status-tile';
+                    fireText.textContent = 'NO FIRE';
+                    
+                    const waterTile = document.getElementById('waterStatusTile');
+                    const waterText = document.getElementById('waterStatusText');
+                    waterTile.className = 'status-tile';
+                    waterText.textContent = 'WATER READY';
+                    
+                    // Reset recording UI
+                    document.getElementById('recordBtn').classList.remove('disabled', 'recording');
+                    document.getElementById('stopBtn').classList.add('disabled');
+                    document.getElementById('recordingIndicator').style.display = 'none';
+                    
+                    this.showNotification('EMERGENCY STOP', 'All systems halted', 'warning');
+                    this.addLog('EMERGENCY STOP activated - All systems halted', 'alert');
+                    
+                    // Stop any active alarm
+                    this.stopAlarmSound();
                 }
-            }, 30000);
-        }
-        
-        acknowledgeAlert() {
-            const alertModal = document.getElementById('emergencyAlert');
-            alertModal.style.display = 'none';
-            
-            this.stopAlarmSound();
-            
-            this.showNotification('ALERT ACKNOWLEDGED', 'Fire alert cleared', 'safe');
-            
-            if (this.autoAlertTimeout) {
-                clearTimeout(this.autoAlertTimeout);
-            }
-        }
-        
-        playAlarmSound() {
-            const alarmSound = document.getElementById('fireAlarmSound');
-            alarmSound.currentTime = 0;
-            alarmSound.volume = 0.7;
-            alarmSound.play().catch(e => console.log('Audio play failed:', e));
-        }
-        
-        stopAlarmSound() {
-            const alarmSound = document.getElementById('fireAlarmSound');
-            alarmSound.pause();
-            alarmSound.currentTime = 0;
-        }
-        
-        // === GALLERY FUNCTIONS ===
-        showGalleryTab(tab) {
-            this.currentGalleryTab = tab;
-            
-            // Update active tab
-            const tabs = document.querySelectorAll('.gallery-tab');
-            tabs.forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            this.updateGallery();
-        }
-        
-        updateGallery() {
-            const galleryGrid = document.getElementById('galleryGrid');
-            const emptyGallery = document.getElementById('emptyGallery');
-            
-            // Clear current grid
-            galleryGrid.innerHTML = '';
-            
-            // Filter media based on current tab
-            let filteredMedia = this.mediaGallery;
-            if (this.currentGalleryTab === 'photos') {
-                filteredMedia = this.mediaGallery.filter(item => item.type === 'photo');
-            } else if (this.currentGalleryTab === 'videos') {
-                filteredMedia = this.mediaGallery.filter(item => item.type === 'video');
             }
             
-            // Show empty state if no media
-            if (filteredMedia.length === 0) {
-                emptyGallery.style.display = 'flex';
-                return;
-            }
-            
-            emptyGallery.style.display = 'none';
-            
-            // Sort by newest first
-            filteredMedia.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            
-            // Create gallery items
-            filteredMedia.forEach((item, index) => {
-                const galleryItem = document.createElement('div');
-                galleryItem.className = 'gallery-item';
-                galleryItem.dataset.id = item.id;
+            handleFireDetection(sensorName = 'Flame Sensor') {
+                const now = Date.now();
                 
-                const date = new Date(item.timestamp);
+                // NO COOLDOWN - Always trigger fire detection
+                // this.fireAlertCooldown is set to 0, so this will always be true
+                if (now - this.lastFireAlertTime >= this.fireAlertCooldown) {
+                    // Update fire statistics
+                    this.stats.fires++;
+                    this.updateStats();
+                    
+                    // Show emergency alert with specific sensor info
+                    this.showEmergencyAlert(sensorName);
+                    
+                    // Play firetruck siren alarm sound at 50% volume
+                    this.playAlarmSound();
+                    
+                    this.showNotification('FIRE EMERGENCY', `${sensorName} detected fire!`, 'critical');
+                    
+                    // Auto-activate water after 2 seconds
+                    setTimeout(() => {
+                        this.activateWater();
+                    }, 2000);
+                    
+                    this.lastFireAlertTime = now;
+                }
+            }
+            
+            showEmergencyAlert(sensorName) {
+                const alertModal = document.getElementById('emergencyAlert');
+                const alertTime = document.getElementById('alertTime');
+                const alertLocation = document.getElementById('alertLocation');
+                
+                const now = new Date();
+                alertTime.textContent = now.toLocaleTimeString('en-US', {
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                
+                alertLocation.textContent = `Arduino: ${sensorName}`;
+                
+                alertModal.style.display = 'flex';
+                
+                // Auto-close after 30 seconds if not acknowledged
+                this.autoAlertTimeout = setTimeout(() => {
+                    if (alertModal.style.display === 'flex') {
+                        this.acknowledgeAlert();
+                    }
+                }, 30000);
+            }
+            
+            acknowledgeAlert() {
+                const alertModal = document.getElementById('emergencyAlert');
+                alertModal.style.display = 'none';
+                
+                this.stopAlarmSound();
+                
+                this.showNotification('ALERT ACKNOWLEDGED', 'Fire alert cleared', 'safe');
+                
+                if (this.autoAlertTimeout) {
+                    clearTimeout(this.autoAlertTimeout);
+                }
+            }
+            
+            playAlarmSound() {
+                const alarmSound = document.getElementById('fireAlarmSound');
+                alarmSound.currentTime = 0;
+                alarmSound.volume = 0.5; // 50% volume - LOUD FIRETRUCK SIREN
+                alarmSound.play().catch(e => {
+                    console.log('Audio play failed:', e);
+                    // Fallback to browser beep if audio fails
+                    this.fallbackAlarm();
+                });
+            }
+            
+            fallbackAlarm() {
+                // Create a simple beep as fallback
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 800; // Frequency in hertz
+                oscillator.type = 'sawtooth'; // Siren-like sound
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+                
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 1);
+            }
+            
+            stopAlarmSound() {
+                const alarmSound = document.getElementById('fireAlarmSound');
+                alarmSound.pause();
+                alarmSound.currentTime = 0;
+            }
+            
+            // === GALLERY FUNCTIONS ===
+            showGalleryTab(tab) {
+                this.currentGalleryTab = tab;
+                
+                // Update active tab
+                const tabs = document.querySelectorAll('.gallery-tab');
+                tabs.forEach(t => t.classList.remove('active'));
+                event.target.classList.add('active');
+                
+                this.updateGallery();
+            }
+            
+            updateGallery() {
+                const galleryGrid = document.getElementById('galleryGrid');
+                const emptyGallery = document.getElementById('emptyGallery');
+                
+                // Clear current grid
+                galleryGrid.innerHTML = '';
+                
+                // Filter media based on current tab
+                let filteredMedia = this.mediaGallery;
+                if (this.currentGalleryTab === 'photos') {
+                    filteredMedia = this.mediaGallery.filter(item => item.type === 'photo');
+                } else if (this.currentGalleryTab === 'videos') {
+                    filteredMedia = this.mediaGallery.filter(item => item.type === 'video');
+                }
+                
+                // Show empty state if no media
+                if (filteredMedia.length === 0) {
+                    emptyGallery.style.display = 'flex';
+                    return;
+                }
+                
+                emptyGallery.style.display = 'none';
+                
+                // Sort by newest first
+                filteredMedia.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                // Create gallery items
+                filteredMedia.forEach((item, index) => {
+                    const galleryItem = document.createElement('div');
+                    galleryItem.className = 'gallery-item';
+                    galleryItem.dataset.id = item.id;
+                    
+                    const date = new Date(item.timestamp);
+                    const timeString = date.toLocaleTimeString('en-US', {
+                        hour12: false,
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    const dateString = date.toLocaleDateString();
+                    
+                    if (item.type === 'photo') {
+                        galleryItem.innerHTML = `
+                            <img src="${item.url}" alt="Snapshot" loading="lazy">
+                            <div class="gallery-item-info">
+                                <span>${timeString} | ${dateString}</span>
+                                <div class="gallery-item-actions">
+                                    <button class="gallery-item-btn" onclick="app.viewMedia(${item.id})" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="gallery-item-btn" onclick="app.downloadMedia(${item.id})" title="Download">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                    <button class="gallery-item-btn" onclick="app.deleteMedia(${item.id})" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="gallery-item-type">PHOTO</div>
+                        `;
+                    } else if (item.type === 'video') {
+                        galleryItem.innerHTML = `
+                            <video muted playsinline>
+                                <source src="${item.url}" type="video/webm">
+                            </video>
+                            <div class="gallery-item-info">
+                                <span>${timeString} | ${dateString} | ${item.duration}s</span>
+                                <div class="gallery-item-actions">
+                                    <button class="gallery-item-btn" onclick="app.viewMedia(${item.id})" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="gallery-item-btn" onclick="app.downloadMedia(${item.id})" title="Download">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                    <button class="gallery-item-btn" onclick="app.deleteMedia(${item.id})" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="gallery-item-type">VIDEO</div>
+                        `;
+                    }
+                    
+                    galleryGrid.appendChild(galleryItem);
+                });
+                
+                // Update media count
+                document.getElementById('metricMedia').textContent = this.mediaGallery.length;
+            }
+            
+            viewMedia(id) {
+                const mediaItem = this.mediaGallery.find(item => item.id === id);
+                if (!mediaItem) return;
+                
+                this.currentMedia = mediaItem;
+                const viewer = document.getElementById('mediaViewer');
+                const content = document.getElementById('mediaContent');
+                const info = document.getElementById('mediaInfo');
+                const videoControls = document.getElementById('videoControls');
+                
+                const date = new Date(mediaItem.timestamp);
                 const timeString = date.toLocaleTimeString('en-US', {
                     hour12: false,
                     hour: '2-digit',
-                    minute: '2-digit'
+                    minute: '2-digit',
+                    second: '2-digit'
                 });
                 const dateString = date.toLocaleDateString();
                 
-                if (item.type === 'photo') {
-                    galleryItem.innerHTML = `
-                        <img src="${item.url}" alt="Snapshot" loading="lazy">
-                        <div class="gallery-item-info">
-                            <span>${timeString} | ${dateString}</span>
-                            <div class="gallery-item-actions">
-                                <button class="gallery-item-btn" onclick="app.viewMedia(${item.id})" title="View">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button class="gallery-item-btn" onclick="app.downloadMedia(${item.id})" title="Download">
-                                    <i class="fas fa-download"></i>
-                                </button>
-                                <button class="gallery-item-btn" onclick="app.deleteMedia(${item.id})" title="Delete">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
+                if (mediaItem.type === 'photo') {
+                    content.innerHTML = `<img src="${mediaItem.url}" class="media-content" alt="Snapshot">`;
+                    videoControls.style.display = 'none';
+                    info.innerHTML = `
+                        <div>
+                            <strong>Photo</strong> | ${dateString} ${timeString} | ${mediaItem.size.toFixed(2)} MB
                         </div>
-                        <div class="gallery-item-type">PHOTO</div>
+                        <div>
+                            <button class="gallery-item-btn" onclick="app.downloadMedia(${mediaItem.id})">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                        </div>
                     `;
-                } else if (item.type === 'video') {
-                    galleryItem.innerHTML = `
-                        <video muted playsinline>
-                            <source src="${item.url}" type="video/webm">
+                } else if (mediaItem.type === 'video') {
+                    content.innerHTML = `
+                        <video id="viewerVideo" controls autoplay class="media-content">
+                            <source src="${mediaItem.url}" type="video/webm">
+                            Your browser does not support the video tag.
                         </video>
-                        <div class="gallery-item-info">
-                            <span>${timeString} | ${dateString} | ${item.duration}s</span>
-                            <div class="gallery-item-actions">
-                                <button class="gallery-item-btn" onclick="app.viewMedia(${item.id})" title="View">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button class="gallery-item-btn" onclick="app.downloadMedia(${item.id})" title="Download">
-                                    <i class="fas fa-download"></i>
-                                </button>
-                                <button class="gallery-item-btn" onclick="app.deleteMedia(${item.id})" title="Delete">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="gallery-item-type">VIDEO</div>
                     `;
+                    videoControls.style.display = 'flex';
+                    info.innerHTML = `
+                        <div>
+                            <strong>Video</strong> | ${dateString} ${timeString} | ${mediaItem.duration}s | ${mediaItem.size.toFixed(2)} MB
+                        </div>
+                        <div>
+                            <button class="gallery-item-btn" onclick="app.downloadMedia(${mediaItem.id})">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Store video element reference
+                    this.currentVideo = document.getElementById('viewerVideo');
+                    this.currentVideo.onplay = () => {
+                        document.getElementById('videoPlayBtn').className = 'fas fa-pause';
+                    };
+                    this.currentVideo.onpause = () => {
+                        document.getElementById('videoPlayBtn').className = 'fas fa-play';
+                    };
                 }
                 
-                galleryGrid.appendChild(galleryItem);
-            });
+                viewer.style.display = 'flex';
+            }
             
-            // Update media count
-            document.getElementById('metricMedia').textContent = this.mediaGallery.length;
-        }
-        
-        viewMedia(id) {
-            const mediaItem = this.mediaGallery.find(item => item.id === id);
-            if (!mediaItem) return;
-            
-            this.currentMedia = mediaItem;
-            const viewer = document.getElementById('mediaViewer');
-            const content = document.getElementById('mediaContent');
-            const info = document.getElementById('mediaInfo');
-            const videoControls = document.getElementById('videoControls');
-            
-            const date = new Date(mediaItem.timestamp);
-            const timeString = date.toLocaleTimeString('en-US', {
-                hour12: false,
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            const dateString = date.toLocaleDateString();
-            
-            if (mediaItem.type === 'photo') {
-                content.innerHTML = `<img src="${mediaItem.url}" class="media-content" alt="Snapshot">`;
-                videoControls.style.display = 'none';
-                info.innerHTML = `
-                    <div>
-                        <strong>Photo</strong> | ${dateString} ${timeString} | ${mediaItem.size.toFixed(2)} MB
-                    </div>
-                    <div>
-                        <button class="gallery-item-btn" onclick="app.downloadMedia(${mediaItem.id})">
-                            <i class="fas fa-download"></i> Download
-                        </button>
-                    </div>
-                `;
-            } else if (mediaItem.type === 'video') {
-                content.innerHTML = `
-                    <video id="viewerVideo" controls autoplay class="media-content">
-                        <source src="${mediaItem.url}" type="video/webm">
-                        Your browser does not support the video tag.
-                    </video>
-                `;
-                videoControls.style.display = 'flex';
-                info.innerHTML = `
-                    <div>
-                        <strong>Video</strong> | ${dateString} ${timeString} | ${mediaItem.duration}s | ${mediaItem.size.toFixed(2)} MB
-                    </div>
-                    <div>
-                        <button class="gallery-item-btn" onclick="app.downloadMedia(${mediaItem.id})">
-                            <i class="fas fa-download"></i> Download
-                        </button>
-                    </div>
-                `;
+            closeMediaViewer() {
+                const viewer = document.getElementById('mediaViewer');
+                viewer.style.display = 'none';
                 
-                // Store video element reference
-                this.currentVideo = document.getElementById('viewerVideo');
-                this.currentVideo.onplay = () => {
-                    document.getElementById('videoPlayBtn').className = 'fas fa-pause';
-                };
-                this.currentVideo.onpause = () => {
-                    document.getElementById('videoPlayBtn').className = 'fas fa-play';
-                };
+                if (this.currentVideo) {
+                    this.currentVideo.pause();
+                    this.currentVideo = null;
+                }
+                this.currentMedia = null;
             }
             
-            viewer.style.display = 'flex';
-        }
-        
-        closeMediaViewer() {
-            const viewer = document.getElementById('mediaViewer');
-            viewer.style.display = 'none';
-            
-            if (this.currentVideo) {
-                this.currentVideo.pause();
-                this.currentVideo = null;
-            }
-            this.currentMedia = null;
-        }
-        
-        toggleVideoPlayback() {
-            if (!this.currentVideo) return;
-            
-            if (this.currentVideo.paused) {
-                this.currentVideo.play();
-            } else {
-                this.currentVideo.pause();
-            }
-        }
-        
-        toggleVideoMute() {
-            if (!this.currentVideo) return;
-            
-            this.currentVideo.muted = !this.currentVideo.muted;
-            const muteBtn = document.getElementById('videoMuteBtn');
-            muteBtn.className = this.currentVideo.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
-        }
-        
-        downloadMedia(id) {
-            const mediaItem = this.mediaGallery.find(item => item.id === id);
-            if (!mediaItem) return;
-            
-            if (mediaItem.type === 'photo') {
-                // For photos (data URL)
-                const link = document.createElement('a');
-                link.href = mediaItem.url;
-                link.download = `${mediaItem.title}.jpg`;
-                link.click();
-            } else if (mediaItem.type === 'video' && mediaItem.blob) {
-                // For videos (Blob)
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(mediaItem.blob);
-                link.download = `${mediaItem.title}.webm`;
-                link.click();
+            toggleVideoPlayback() {
+                if (!this.currentVideo) return;
                 
-                // Clean up URL after download
-                setTimeout(() => URL.revokeObjectURL(link.href), 100);
-            } else if (mediaItem.type === 'video') {
-                // Fallback for videos without blob
-                const link = document.createElement('a');
-                link.href = mediaItem.url;
-                link.download = `${mediaItem.title}.webm`;
-                link.click();
+                if (this.currentVideo.paused) {
+                    this.currentVideo.play();
+                } else {
+                    this.currentVideo.pause();
+                }
             }
             
-            this.showNotification('DOWNLOAD STARTED', `Downloading ${mediaItem.type}`, 'info');
-            this.addLog(`Downloaded ${mediaItem.type}: ${mediaItem.title}`, 'media');
-        }
-        
-        downloadCurrentMedia() {
-            if (this.currentMedia) {
-                this.downloadMedia(this.currentMedia.id);
-            }
-        }
-        
-        deleteMedia(id) {
-            if (!confirm('Are you sure you want to delete this media file?')) {
-                return;
+            toggleVideoMute() {
+                if (!this.currentVideo) return;
+                
+                this.currentVideo.muted = !this.currentVideo.muted;
+                const muteBtn = document.getElementById('videoMuteBtn');
+                muteBtn.className = this.currentVideo.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
             }
             
-            const index = this.mediaGallery.findIndex(item => item.id === id);
-            if (index === -1) return;
-            
-            const mediaItem = this.mediaGallery[index];
-            
-            // Update stats
-            this.stats.mediaCount--;
-            this.stats.storageUsed -= mediaItem.size || 0;
-            
-            // Remove from array
-            this.mediaGallery.splice(index, 1);
-            
-            // Update UI and storage
-            this.updateGallery();
-            this.updateStats();
-            this.saveGalleryToStorage();
-            
-            this.showNotification('MEDIA DELETED', 'Media file removed from gallery', 'info');
-            this.addLog(`Deleted ${mediaItem.type}: ${mediaItem.title}`, 'media');
-        }
-        
-        clearGallery() {
-            if (this.mediaGallery.length === 0) {
-                this.showNotification('GALLERY', 'Gallery is already empty', 'info');
-                return;
+            downloadMedia(id) {
+                const mediaItem = this.mediaGallery.find(item => item.id === id);
+                if (!mediaItem) return;
+                
+                if (mediaItem.type === 'photo') {
+                    // For photos (data URL)
+                    const link = document.createElement('a');
+                    link.href = mediaItem.url;
+                    link.download = `${mediaItem.title}.jpg`;
+                    link.click();
+                } else if (mediaItem.type === 'video' && mediaItem.blob) {
+                    // For videos (Blob)
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(mediaItem.blob);
+                    link.download = `${mediaItem.title}.webm`;
+                    link.click();
+                    
+                    // Clean up URL after download
+                    setTimeout(() => URL.revokeObjectURL(link.href), 100);
+                } else if (mediaItem.type === 'video') {
+                    // Fallback for videos without blob
+                    const link = document.createElement('a');
+                    link.href = mediaItem.url;
+                    link.download = `${mediaItem.title}.webm`;
+                    link.click();
+                }
+                
+                this.showNotification('DOWNLOAD STARTED', `Downloading ${mediaItem.type}`, 'info');
+                this.addLog(`Downloaded ${mediaItem.type}: ${mediaItem.title}`, 'media');
             }
             
-            if (!confirm('Are you sure you want to clear all media from the gallery? This cannot be undone.')) {
-                return;
+            downloadCurrentMedia() {
+                if (this.currentMedia) {
+                    this.downloadMedia(this.currentMedia.id);
+                }
             }
             
-            // Clear gallery
-            this.mediaGallery = [];
-            this.stats.mediaCount = 0;
-            this.stats.storageUsed = 0;
+            deleteMedia(id) {
+                if (!confirm('Are you sure you want to delete this media file?')) {
+                    return;
+                }
+                
+                const index = this.mediaGallery.findIndex(item => item.id === id);
+                if (index === -1) return;
+                
+                const mediaItem = this.mediaGallery[index];
+                
+                // Update stats
+                this.stats.mediaCount--;
+                this.stats.storageUsed -= mediaItem.size || 0;
+                
+                // Remove from array
+                this.mediaGallery.splice(index, 1);
+                
+                // Update UI and storage
+                this.updateGallery();
+                this.updateStats();
+                this.saveGalleryToStorage();
+                
+                this.showNotification('MEDIA DELETED', 'Media file removed from gallery', 'info');
+                this.addLog(`Deleted ${mediaItem.type}: ${mediaItem.title}`, 'media');
+            }
             
-            // Update UI and storage
-            this.updateGallery();
-            this.updateStats();
-            this.saveGalleryToStorage();
+            clearGallery() {
+                if (this.mediaGallery.length === 0) {
+                    this.showNotification('GALLERY', 'Gallery is already empty', 'info');
+                    return;
+                }
+                
+                if (!confirm('Are you sure you want to clear all media from the gallery? This cannot be undone.')) {
+                    return;
+                }
+                
+                // Clear gallery
+                this.mediaGallery = [];
+                this.stats.mediaCount = 0;
+                this.stats.storageUsed = 0;
+                
+                // Update UI and storage
+                this.updateGallery();
+                this.updateStats();
+                this.saveGalleryToStorage();
+                
+                this.showNotification('GALLERY CLEARED', 'All media files removed', 'info');
+                this.addLog('Gallery cleared - all media files removed', 'media');
+            }
             
-            this.showNotification('GALLERY CLEARED', 'All media files removed', 'info');
-            this.addLog('Gallery cleared - all media files removed', 'media');
-        }
-        
-        loadGalleryFromStorage() {
-            const savedGallery = localStorage.getItem('apula_gallery');
-            if (savedGallery) {
+            loadGalleryFromStorage() {
+                const savedGallery = localStorage.getItem('apula_gallery');
+                if (savedGallery) {
+                    try {
+                        this.mediaGallery = JSON.parse(savedGallery);
+                        this.addLog('Gallery loaded from local storage', 'info');
+                    } catch (e) {
+                        console.error('Failed to load gallery:', e);
+                        this.mediaGallery = [];
+                    }
+                }
+                
+                const savedStats = localStorage.getItem('apula_stats');
+                if (savedStats) {
+                    try {
+                        const stats = JSON.parse(savedStats);
+                        this.stats.mediaCount = stats.mediaCount || 0;
+                        this.stats.storageUsed = stats.storageUsed || 0;
+                    } catch (e) {
+                        console.error('Failed to load stats:', e);
+                    }
+                }
+            }
+            
+            saveGalleryToStorage() {
                 try {
-                    this.mediaGallery = JSON.parse(savedGallery);
-                    this.addLog('Gallery loaded from local storage', 'info');
+                    localStorage.setItem('apula_gallery', JSON.stringify(this.mediaGallery));
+                    localStorage.setItem('apula_stats', JSON.stringify({
+                        mediaCount: this.stats.mediaCount,
+                        storageUsed: this.stats.storageUsed
+                    }));
                 } catch (e) {
-                    console.error('Failed to load gallery:', e);
-                    this.mediaGallery = [];
+                    console.error('Failed to save gallery:', e);
                 }
             }
             
-            const savedStats = localStorage.getItem('apula_stats');
-            if (savedStats) {
-                try {
-                    const stats = JSON.parse(savedStats);
-                    this.stats.mediaCount = stats.mediaCount || 0;
-                    this.stats.storageUsed = stats.storageUsed || 0;
-                } catch (e) {
-                    console.error('Failed to load stats:', e);
-                }
-            }
-        }
-        
-        saveGalleryToStorage() {
-            try {
-                localStorage.setItem('apula_gallery', JSON.stringify(this.mediaGallery));
-                localStorage.setItem('apula_stats', JSON.stringify({
-                    mediaCount: this.stats.mediaCount,
-                    storageUsed: this.stats.storageUsed
-                }));
-            } catch (e) {
-                console.error('Failed to save gallery:', e);
-            }
-        }
-        
-        updateCameraStatus() {
-            const cameraTile = document.getElementById('cameraTile');
-            const cameraTileText = document.getElementById('cameraTileText');
-            const cameraStatus = document.getElementById('cameraStatusText');
-            const cameraDot = document.getElementById('cameraStatusDot');
-            
-            if (this.camera.isActive) {
-                cameraTile.className = 'status-tile safe';
-                cameraTileText.textContent = 'CAMERA ONLINE';
-                cameraStatus.textContent = 'CAMERA: ACTIVE';
-                cameraDot.className = 'status-dot safe';
-            } else {
-                cameraTile.className = 'status-tile warning';
-                cameraTileText.textContent = 'CAMERA OFFLINE';
-                cameraStatus.textContent = 'CAMERA: READY';
-                cameraDot.className = 'status-dot warning';
-            }
-        }
-        
-        updateStats() {
-            document.getElementById('metricCameras').textContent = `${this.stats.activeCameras}/1`;
-            document.getElementById('metricFires').textContent = this.stats.fires;
-            document.getElementById('metricWater').textContent = this.stats.waterActivations;
-            document.getElementById('metricMedia').textContent = this.stats.mediaCount;
-        }
-        
-        startUptimeCounter() {
-            setInterval(() => {
-                this.systemUptime++;
-                const hours = Math.floor(this.systemUptime / 3600);
-                const minutes = Math.floor((this.systemUptime % 3600) / 60);
-                const seconds = this.systemUptime % 60;
+            updateCameraStatus() {
+                const cameraTile = document.getElementById('cameraTile');
+                const cameraTileText = document.getElementById('cameraTileText');
+                const cameraStatus = document.getElementById('cameraStatusText');
+                const cameraDot = document.getElementById('cameraStatusDot');
                 
-                document.getElementById('metricUptime').textContent = 
-                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }, 1000);
-        }
-        
-        showNotification(title, message, type = 'info') {
-            const notificationCenter = document.getElementById('notificationCenter');
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            
-            notification.innerHTML = `
-                <div class="notification-title">
-                    <i class="fas fa-${type === 'critical' ? 'fire' : type === 'warning' ? 'exclamation-triangle' : type === 'media' ? 'camera' : 'info-circle'}"></i>
-                    ${title}
-                </div>
-                <div class="notification-message">${message}</div>
-            `;
-            
-            notificationCenter.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                notification.style.transform = 'translateX(100%)';
-                setTimeout(() => notification.remove(), 300);
-            }, 5000);
-        }
-        
-        addLog(message, type = 'info') {
-            const logContainer = document.getElementById('logContainer');
-            const logEntry = document.createElement('div');
-            logEntry.className = `log-entry ${type}`;
-            
-            const time = new Date();
-            const timeStr = time.toLocaleTimeString('en-US', { 
-                hour12: false,
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            
-            logEntry.innerHTML = `
-                <span class="log-time">${timeStr}</span>
-                <span class="log-message">${message}</span>
-            `;
-            
-            logContainer.appendChild(logEntry);
-            logContainer.scrollTop = logContainer.scrollHeight;
-            
-            while (logContainer.children.length > 50) {
-                logContainer.removeChild(logContainer.firstChild);
+                if (this.camera.isActive) {
+                    cameraTile.className = 'status-tile safe';
+                    cameraTileText.textContent = 'CAMERA ONLINE';
+                    cameraStatus.textContent = 'CAMERA: ACTIVE';
+                    cameraDot.className = 'status-dot safe';
+                } else {
+                    cameraTile.className = 'status-tile warning';
+                    cameraTileText.textContent = 'CAMERA OFFLINE';
+                    cameraStatus.textContent = 'CAMERA: READY';
+                    cameraDot.className = 'status-dot warning';
+                }
             }
-        }
-        
-        clearLogs() {
-            if (confirm('Clear all system logs?')) {
+            
+            updateStats() {
+                document.getElementById('metricCameras').textContent = `${this.stats.activeCameras}/1`;
+                document.getElementById('metricFires').textContent = this.stats.fires;
+                document.getElementById('metricWater').textContent = this.stats.waterActivations;
+                document.getElementById('metricMedia').textContent = this.stats.mediaCount;
+            }
+            
+            startUptimeCounter() {
+                setInterval(() => {
+                    this.systemUptime++;
+                    const hours = Math.floor(this.systemUptime / 3600);
+                    const minutes = Math.floor((this.systemUptime % 3600) / 60);
+                    const seconds = this.systemUptime % 60;
+                    
+                    document.getElementById('metricUptime').textContent = 
+                        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+            
+            showNotification(title, message, type = 'info') {
+                const notificationCenter = document.getElementById('notificationCenter');
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                
+                notification.innerHTML = `
+                    <div class="notification-title">
+                        <i class="fas fa-${type === 'critical' ? 'fire' : type === 'warning' ? 'exclamation-triangle' : type === 'media' ? 'camera' : 'info-circle'}"></i>
+                        ${title}
+                    </div>
+                    <div class="notification-message">${message}</div>
+                `;
+                
+                notificationCenter.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateX(100%)';
+                    setTimeout(() => notification.remove(), 300);
+                }, 5000);
+            }
+            
+            addLog(message, type = 'info') {
                 const logContainer = document.getElementById('logContainer');
-                logContainer.innerHTML = '';
-                this.addLog('Logs cleared', 'info');
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${type}`;
+                
+                const time = new Date();
+                const timeStr = time.toLocaleTimeString('en-US', { 
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                
+                logEntry.innerHTML = `
+                    <span class="log-time">${timeStr}</span>
+                    <span class="log-message">${message}</span>
+                `;
+                
+                logContainer.appendChild(logEntry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+                
+                while (logContainer.children.length > 50) {
+                    logContainer.removeChild(logContainer.firstChild);
+                }
+            }
+            
+            clearLogs() {
+                if (confirm('Clear all system logs?')) {
+                    const logContainer = document.getElementById('logContainer');
+                    logContainer.innerHTML = '';
+                    this.addLog('Logs cleared', 'info');
+                }
+            }
+            
+            showLoading(show) {
+                const overlay = document.getElementById('loadingOverlay');
+                overlay.style.display = show ? 'flex' : 'none';
             }
         }
-        
-        showLoading(show) {
-            const overlay = document.getElementById('loadingOverlay');
-            overlay.style.display = show ? 'flex' : 'none';
-        }
-    }
 
-    // Initialize the main app
-    window.app = new APULAApp();
+        // Initialize the main app
+        window.app = new APULAApp();
 
-    // Make functions globally available
-    window.connectCamera = () => app.connectCamera();
-    window.startRecording = () => app.startRecording();
-    window.stopRecording = () => app.stopRecording();
-    window.captureSnapshot = () => app.captureSnapshot();
-    window.activateWater = () => app.activateWater();
-    window.emergencyStop = () => app.emergencyStop();
-    window.acknowledgeAlert = () => app.acknowledgeAlert();
-    window.selectCamera = (type) => app.selectCamera(type);
-    window.connectRTSP = () => app.connectRTSP();
+        // Make functions globally available
+        window.connectCamera = () => app.connectCamera();
+        window.startRecording = () => app.startRecording();
+        window.stopRecording = () => app.stopRecording();
+        window.captureSnapshot = () => app.captureSnapshot();
+        window.activateWater = () => app.activateWater();
+        window.emergencyStop = () => app.emergencyStop();
+        window.acknowledgeAlert = () => app.acknowledgeAlert();
+        window.selectCamera = (type) => app.selectCamera(type);
+        window.connectRTSP = () => app.connectRTSP();
 
-    // Add fadeOut animation
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
-    `;
-    document.head.appendChild(style);
-</script>
+        // Add fadeOut animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
 </body>
 </html>
