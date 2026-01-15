@@ -1915,8 +1915,8 @@
 
     <!-- Audio for Fire Alarm - Using a more reliable firetruck siren -->
     <audio id="fireAlarmSound" preload="auto" loop>
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-fire-truck-alarm-1004.mp3" type="audio/mpeg">
-        <source src="https://www.soundjay.com/ambient/sounds/fire-truck-siren-01.mp3" type="audio/mpeg">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-emergency-air-siren-1646.mp3" type="audio/mpeg">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-warning-alarm-buzzer-991.mp3" type="audio/mpeg">
     </audio>
 
     <!-- Fallback Audio Context for siren generation -->
@@ -2755,6 +2755,8 @@
                 this.alertActive = false;
                 this.alarmPlaying = false;
                 this.autoAlertTimeout = null;
+                this.alarmSilencedUntil = 0;
+                this.alertSuppressedUntil = 0;
                 
                 this.init();
             }
@@ -3423,6 +3425,15 @@
                 // NO COOLDOWN - Always trigger fire detection
                 // this.fireAlertCooldown is set to 0, so this will always be true
                 if (now - this.lastFireAlertTime >= this.fireAlertCooldown) {
+                    // Do not re-open modal or re-start alarm during acknowledge silence
+                    if (now < this.alertSuppressedUntil) {
+                        // Still log and update tiles without sound/modal
+                        this.stats.fires++;
+                        this.updateStats();
+                        this.showNotification('FIRE DETECTED', `${sensorName} detected fire`, 'critical');
+                        this.lastFireAlertTime = now;
+                        return;
+                    }
                     // Update fire statistics
                     this.stats.fires++;
                     this.updateStats();
@@ -3445,6 +3456,10 @@
             }
             
             showEmergencyAlert(sensorName) {
+                // Suppress alert display during acknowledge silence window
+                if (Date.now() < this.alertSuppressedUntil) {
+                    return;
+                }
                 const alertModal = document.getElementById('emergencyAlert');
                 const alertTime = document.getElementById('alertTime');
                 const alertLocation = document.getElementById('alertLocation');
@@ -3480,6 +3495,11 @@
                 
                 // FIXED: STOP THE ALARM WHEN ACKNOWLEDGE BUTTON IS PRESSED
                 this.stopAlarmSound();
+                // Silence re-triggers and modal for 60 seconds
+                const silenceMs = 60000;
+                const now = Date.now();
+                this.alarmSilencedUntil = now + silenceMs;
+                this.alertSuppressedUntil = now + silenceMs;
                 
                 this.showNotification('ALERT ACKNOWLEDGED', 'Fire alert cleared', 'safe');
                 
@@ -3543,6 +3563,10 @@
             }
             
             playAlarmSound() {
+                // Respect silence window after acknowledge
+                if (Date.now() < this.alarmSilencedUntil) {
+                    return;
+                }
                 console.log('🚒 PLAYING LOUD NON-STOP FIRETRUCK ALARM');
                 this.alarmPlaying = true;
                 
@@ -3553,7 +3577,7 @@
                     // Fallback to MP3 alarm
                     const alarmSound = document.getElementById('fireAlarmSound');
                     alarmSound.currentTime = 0;
-                    alarmSound.volume = 0.8; // 80% volume - VERY LOUD
+                    alarmSound.volume = 0.9;
                     alarmSound.loop = true;
                     
                     const playPromise = alarmSound.play();
