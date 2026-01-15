@@ -1641,7 +1641,8 @@
                 <div class="status-tile" id="waterStatusTile">
                     <i class="fas fa-tint tile-icon"></i>
                     <div class="tile-title" id="waterStatusText">WATER READY</div>
-                    <div class="tile-subtitle">Pressure: 80%</div>
+                    <!-- Replaced Pressure with Time/Date -->
+                    <div class="tile-subtitle" id="currentDateTime">--:-- -- MM/DD/YYYY</div>
                 </div>
                 
                 <div class="status-tile" id="arduinoTile">
@@ -1881,10 +1882,190 @@
         </div>
     </div>
 
-    <!-- Audio for Alarms -->
-    <audio id="fireAlarmSound" preload="auto" volume="0.5">
+    <!-- Audio for Alarms - Using a more reliable firetruck siren -->
+    <audio id="fireAlarmSound" preload="auto" loop>
         <source src="https://assets.mixkit.co/sfx/preview/mixkit-fire-truck-alarm-1004.mp3" type="audio/mpeg">
+        <source src="https://www.soundjay.com/ambient/sounds/fire-truck-siren-01.mp3" type="audio/mpeg">
     </audio>
+
+    <!-- Fallback Audio Context for siren generation -->
+    <script>
+        // === LOUD NON-STOP FIRETRUCK SIREN GENERATOR ===
+        class FireTruckSiren {
+            constructor() {
+                this.audioContext = null;
+                this.oscillator1 = null;
+                this.oscillator2 = null;
+                this.gainNode = null;
+                this.isPlaying = false;
+                this.sirenInterval = null;
+                this.volume = 0.8; // 80% volume - VERY LOUD
+            }
+            
+            initializeAudioContext() {
+                if (!this.audioContext) {
+                    try {
+                        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        console.log('Audio Context initialized');
+                    } catch (error) {
+                        console.error('Failed to initialize Audio Context:', error);
+                        return false;
+                    }
+                }
+                return true;
+            }
+            
+            createSirenSound() {
+                if (!this.initializeAudioContext()) {
+                    console.error('Cannot create siren - Audio Context failed');
+                    return false;
+                }
+                
+                // Create two oscillators for siren effect
+                this.oscillator1 = this.audioContext.createOscillator();
+                this.oscillator2 = this.audioContext.createOscillator();
+                this.gainNode = this.audioContext.createGain();
+                
+                // Connect oscillators to gain node
+                this.oscillator1.connect(this.gainNode);
+                this.oscillator2.connect(this.gainNode);
+                
+                // Connect gain node to speakers
+                this.gainNode.connect(this.audioContext.destination);
+                
+                // Set oscillator types for siren sound
+                this.oscillator1.type = 'sawtooth';
+                this.oscillator2.type = 'sawtooth';
+                
+                // Set initial frequencies (European-style siren)
+                this.oscillator1.frequency.value = 800; // Hz
+                this.oscillator2.frequency.value = 900; // Hz
+                
+                // Set volume
+                this.gainNode.gain.value = this.volume;
+                
+                return true;
+            }
+            
+            start() {
+                if (this.isPlaying) {
+                    console.log('Siren already playing');
+                    return;
+                }
+                
+                console.log('🚒 FIRETRUCK SIREN STARTED - LOUD & NON-STOP');
+                
+                // First try to play MP3 siren
+                const mp3Siren = document.getElementById('fireAlarmSound');
+                if (mp3Siren) {
+                    mp3Siren.volume = this.volume;
+                    mp3Siren.loop = true;
+                    
+                    const playPromise = mp3Siren.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            console.log('MP3 firetruck siren playing');
+                            this.isPlaying = true;
+                        }).catch(error => {
+                            console.log('MP3 siren failed, using generated siren:', error);
+                            this.startGeneratedSiren();
+                        });
+                    }
+                } else {
+                    this.startGeneratedSiren();
+                }
+            }
+            
+            startGeneratedSiren() {
+                if (!this.createSirenSound()) {
+                    console.error('Failed to create siren sound');
+                    return;
+                }
+                
+                // Start oscillators
+                this.oscillator1.start();
+                this.oscillator2.start();
+                
+                this.isPlaying = true;
+                
+                // Create siren effect by modulating frequencies
+                let direction = 1;
+                let frequency1 = 800;
+                let frequency2 = 900;
+                
+                this.sirenInterval = setInterval(() => {
+                    // Swoop up and down
+                    frequency1 += direction * 50;
+                    frequency2 += direction * 50;
+                    
+                    if (frequency1 >= 1200 || frequency1 <= 600) {
+                        direction *= -1;
+                    }
+                    
+                    // Update frequencies
+                    if (this.oscillator1 && this.oscillator2) {
+                        this.oscillator1.frequency.setValueAtTime(frequency1, this.audioContext.currentTime);
+                        this.oscillator2.frequency.setValueAtTime(frequency2, this.audioContext.currentTime);
+                    }
+                    
+                    // Add random modulation for more realistic siren
+                    if (Math.random() > 0.7) {
+                        const randomMod = Math.random() * 100;
+                        this.oscillator1.frequency.setValueAtTime(frequency1 + randomMod, this.audioContext.currentTime + 0.1);
+                        this.oscillator2.frequency.setValueAtTime(frequency2 + randomMod, this.audioContext.currentTime + 0.1);
+                    }
+                    
+                }, 200); // Update every 200ms for siren effect
+                
+                console.log('Generated firetruck siren playing');
+            }
+            
+            stop() {
+                console.log('🚒 FIRETRUCK SIREN STOPPED');
+                
+                // Stop MP3 siren if playing
+                const mp3Siren = document.getElementById('fireAlarmSound');
+                if (mp3Siren) {
+                    mp3Siren.pause();
+                    mp3Siren.currentTime = 0;
+                }
+                
+                // Stop generated siren if playing
+                if (this.sirenInterval) {
+                    clearInterval(this.sirenInterval);
+                    this.sirenInterval = null;
+                }
+                
+                if (this.oscillator1) {
+                    this.oscillator1.stop();
+                    this.oscillator1.disconnect();
+                    this.oscillator1 = null;
+                }
+                
+                if (this.oscillator2) {
+                    this.oscillator2.stop();
+                    this.oscillator2.disconnect();
+                    this.oscillator2 = null;
+                }
+                
+                if (this.gainNode) {
+                    this.gainNode.disconnect();
+                    this.gainNode = null;
+                }
+                
+                this.isPlaying = false;
+                
+                // Close audio context
+                if (this.audioContext && this.audioContext.state !== 'closed') {
+                    this.audioContext.close();
+                    this.audioContext = null;
+                }
+            }
+        }
+        
+        // Initialize siren system
+        window.fireTruckSiren = new FireTruckSiren();
+    </script>
 
     <script>
         // === REAL ARDUINO INTEGRATION (Web Serial API) ===
@@ -2489,7 +2670,7 @@
                 
                 const time = new Date();
                 const timeStr = time.toLocaleTimeString('en-US', { 
-                    hour12: false,
+                    hour12: true,
                     hour: '2-digit',
                     minute: '2-digit',
                     second: '2-digit'
@@ -2540,6 +2721,9 @@
                 this.currentVideo = null;
                 this.lastFireAlertTime = 0;
                 this.fireAlertCooldown = 0; // NO COOLDOWN - set to 0
+                this.alertActive = false;
+                this.alarmPlaying = false;
+                this.autoAlertTimeout = null;
                 
                 this.init();
             }
@@ -2549,6 +2733,7 @@
                 this.loadGalleryFromStorage();
                 this.bindEvents();
                 this.startUptimeCounter();
+                this.startDateTimeUpdater(); // Start date/time updater
                 this.updateGallery();
                 this.showNotification('SYSTEM ONLINE', 'Fire Command Dashboard activated', 'safe');
                 this.addLog('Emergency dashboard system initialized', 'info');
@@ -3114,7 +3299,7 @@
                     // Show emergency alert with specific sensor info
                     this.showEmergencyAlert(sensorName);
                     
-                    // Play firetruck siren alarm sound at 50% volume
+                    // Play LOUD NON-STOP FIRETRUCK SIREN
                     this.playAlarmSound();
                     
                     this.showNotification('FIRE EMERGENCY', `${sensorName} detected fire!`, 'critical');
@@ -3135,7 +3320,7 @@
                 
                 const now = new Date();
                 alertTime.textContent = now.toLocaleTimeString('en-US', {
-                    hour12: false,
+                    hour12: true,
                     hour: '2-digit',
                     minute: '2-digit',
                     second: '2-digit'
@@ -3144,6 +3329,7 @@
                 alertLocation.textContent = `Arduino: ${sensorName}`;
                 
                 alertModal.style.display = 'flex';
+                this.alertActive = true;
                 
                 // Auto-close after 30 seconds if not acknowledged
                 this.autoAlertTimeout = setTimeout(() => {
@@ -3156,7 +3342,9 @@
             acknowledgeAlert() {
                 const alertModal = document.getElementById('emergencyAlert');
                 alertModal.style.display = 'none';
+                this.alertActive = false;
                 
+                // STOP THE LOUD NON-STOP FIRETRUCK SIREN
                 this.stopAlarmSound();
                 
                 this.showNotification('ALERT ACKNOWLEDGED', 'Fire alert cleared', 'safe');
@@ -3188,7 +3376,7 @@
                 
                 const now = new Date();
                 alertTime.textContent = now.toLocaleTimeString('en-US', {
-                    hour12: false,
+                    hour12: true,
                     hour: '2-digit',
                     minute: '2-digit',
                     second: '2-digit'
@@ -3199,8 +3387,9 @@
                 alertSeverity.style.color = 'var(--hazard-yellow)';
                 
                 alertModal.style.display = 'flex';
+                this.alertActive = true;
                 
-                // Play firetruck siren alarm sound at 50% volume
+                // Play LOUD NON-STOP FIRETRUCK SIREN
                 this.playAlarmSound();
                 
                 this.showNotification('TEST FIRE ALERT', 'Manual test fire alert triggered', 'warning');
@@ -3220,45 +3409,137 @@
             }
             
             playAlarmSound() {
-                const alarmSound = document.getElementById('fireAlarmSound');
-                alarmSound.currentTime = 0;
-                alarmSound.volume = 0.5; // 50% volume - LOUD FIRETRUCK SIREN
-                alarmSound.play().catch(e => {
-                    console.log('Audio play failed:', e);
-                    // Fallback to browser beep if audio fails
-                    this.fallbackAlarm();
-                });
+                console.log('🚒 PLAYING LOUD NON-STOP FIRETRUCK SIREN');
+                this.alarmPlaying = true;
+                
+                // Use the FireTruckSiren class for loud non-stop siren
+                if (window.fireTruckSiren) {
+                    window.fireTruckSiren.start();
+                } else {
+                    // Fallback to MP3 siren
+                    const alarmSound = document.getElementById('fireAlarmSound');
+                    alarmSound.currentTime = 0;
+                    alarmSound.volume = 0.8; // 80% volume - VERY LOUD
+                    alarmSound.loop = true;
+                    
+                    const playPromise = alarmSound.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(e => {
+                            console.log('Audio play failed:', e);
+                            this.fallbackAlarm();
+                        });
+                    }
+                }
             }
             
             fallbackAlarm() {
+                console.log('Using fallback alarm generator');
                 // Create a simple beep as fallback
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                oscillator.frequency.value = 800; // Frequency in hertz
-                oscillator.type = 'sawtooth'; // Siren-like sound
-                
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
-                
-                oscillator.start();
-                oscillator.stop(audioContext.currentTime + 1);
+                try {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = 800; // Frequency in hertz
+                    oscillator.type = 'sawtooth'; // Siren-like sound
+                    
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    
+                    oscillator.start();
+                    
+                    // Store references to stop later
+                    this.fallbackOscillator = oscillator;
+                    this.fallbackGainNode = gainNode;
+                    this.fallbackAudioContext = audioContext;
+                    
+                } catch (error) {
+                    console.error('Fallback alarm failed:', error);
+                }
             }
             
             stopAlarmSound() {
+                console.log('🛑 STOPPING FIRETRUCK SIREN');
+                this.alarmPlaying = false;
+                
+                // Stop the FireTruckSiren
+                if (window.fireTruckSiren) {
+                    window.fireTruckSiren.stop();
+                }
+                
+                // Stop MP3 siren if playing
                 const alarmSound = document.getElementById('fireAlarmSound');
                 alarmSound.pause();
                 alarmSound.currentTime = 0;
+                
+                // Stop fallback alarm if active
+                if (this.fallbackOscillator) {
+                    this.fallbackOscillator.stop();
+                    this.fallbackOscillator.disconnect();
+                    this.fallbackOscillator = null;
+                }
+                
+                if (this.fallbackGainNode) {
+                    this.fallbackGainNode.disconnect();
+                    this.fallbackGainNode = null;
+                }
+                
+                if (this.fallbackAudioContext && this.fallbackAudioContext.state !== 'closed') {
+                    this.fallbackAudioContext.close();
+                    this.fallbackAudioContext = null;
+                }
                 
                 // Reset fire status tile
                 const fireTile = document.getElementById('fireStatusTile');
                 const fireText = document.getElementById('fireStatusText');
                 fireTile.className = 'status-tile safe';
                 fireText.textContent = 'NO FIRE';
+            }
+            
+            // === DATE/TIME UPDATER ===
+            startDateTimeUpdater() {
+                // Update immediately
+                this.updateDateTime();
+                
+                // Update every second
+                setInterval(() => {
+                    this.updateDateTime();
+                }, 1000);
+            }
+            
+            updateDateTime() {
+                const now = new Date();
+                
+                // Format time (12-hour with AM/PM)
+                const timeString = now.toLocaleTimeString('en-US', {
+                    hour12: true,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                
+                // Format date (MM/DD/YYYY)
+                const dateString = now.toLocaleDateString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: 'numeric'
+                });
+                
+                // Update the water status tile subtitle with time/date
+                const dateTimeElement = document.getElementById('currentDateTime');
+                if (dateTimeElement) {
+                    dateTimeElement.textContent = `${timeString} ${dateString}`;
+                }
+                
+                // Also update alert time if alert is active
+                if (this.alertActive) {
+                    const alertTimeElement = document.getElementById('alertTime');
+                    if (alertTimeElement) {
+                        alertTimeElement.textContent = timeString;
+                    }
+                }
             }
             
             // === GALLERY FUNCTIONS ===
@@ -3307,7 +3588,7 @@
                     
                     const date = new Date(item.timestamp);
                     const timeString = date.toLocaleTimeString('en-US', {
-                        hour12: false,
+                        hour12: true,
                         hour: '2-digit',
                         minute: '2-digit'
                     });
@@ -3374,7 +3655,7 @@
                 
                 const date = new Date(mediaItem.timestamp);
                 const timeString = date.toLocaleTimeString('en-US', {
-                    hour12: false,
+                    hour12: true,
                     hour: '2-digit',
                     minute: '2-digit',
                     second: '2-digit'
@@ -3645,7 +3926,7 @@
                 
                 const time = new Date();
                 const timeStr = time.toLocaleTimeString('en-US', { 
-                    hour12: false,
+                    hour12: true,
                     hour: '2-digit',
                     minute: '2-digit',
                     second: '2-digit'
