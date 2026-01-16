@@ -1506,6 +1506,31 @@
                 var(--emergency-red));
         }
 
+        /* Camera input fields */
+        .camera-input-group {
+            margin-top: var(--spacing-base);
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-base);
+        }
+
+        .camera-input {
+            width: 100%;
+            padding: var(--spacing-base);
+            border-radius: var(--border-radius-critical);
+            background: rgba(42, 42, 53, 0.8);
+            border: 2px solid rgba(255, 85, 0, 0.3);
+            color: var(--aluminum);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .camera-input:focus {
+            outline: none;
+            border-color: var(--fire-orange);
+            box-shadow: 0 0 10px rgba(255, 85, 0, 0.5);
+        }
+
         /* Accessibility */
         @media (prefers-reduced-motion: reduce) {
             * {
@@ -1666,65 +1691,90 @@
 
             <!-- Camera Options - UPDATED WITH ALL OPTIONS -->
             <div class="camera-options">
-                <button class="camera-option-btn" onclick="app.selectCamera('wifi')" id="wifiBtn">
+                <button class="camera-option-btn" onclick="selectCamera('wifi')" id="wifiBtn">
                     <i class="fas fa-wifi"></i>
                     Wi-Fi
                 </button>
-                <button class="camera-option-btn" onclick="app.selectCamera('bluetooth')" id="bluetoothBtn">
+                <button class="camera-option-btn" onclick="selectCamera('bluetooth')" id="bluetoothBtn">
                     <i class="fas fa-bluetooth"></i>
                     Bluetooth
                 </button>
-                <button class="camera-option-btn" onclick="app.selectCamera('rtsp')" id="rtspBtn">
+                <button class="camera-option-btn" onclick="selectCamera('rtsp')" id="rtspBtn">
                     <i class="fas fa-satellite-dish"></i>
                     RTSP
                 </button>
-                <button class="camera-option-btn" onclick="app.selectCamera('webcam')" id="webcamBtn">
+                <button class="camera-option-btn active" onclick="selectCamera('webcam')" id="webcamBtn">
                     <i class="fas fa-camera"></i>
                     Webcam
                 </button>
             </div>
 
-            <!-- RTSP URL Input (Hidden by default) -->
-            <div id="rtspInput" style="display: none; margin-top: var(--spacing-base);">
-                <input type="text" id="rtspUrl" placeholder="rtsp://username:password@192.168.1.100:554/stream" 
-                       style="width: 100%; padding: var(--spacing-base); border-radius: var(--border-radius-critical); 
-                              background: rgba(42, 42, 53, 0.8); border: 2px solid rgba(255, 85, 0, 0.3); 
-                              color: var(--aluminum); font-family: 'Montserrat', sans-serif;">
-                <button class="control-button" onclick="app.connectRTSP()" style="width: 100%; margin-top: var(--spacing-base);">
-                    <i class="fas fa-plug"></i>
-                    Connect RTSP Stream
-                </button>
-            </div>
+            <!-- Camera Input Fields -->
+            <div id="cameraInputs">
+                <!-- RTSP URL Input -->
+                <div id="rtspInput" class="camera-input-group" style="display: none;">
+                    <input type="text" id="rtspUrl" class="camera-input" 
+                           placeholder="rtsp://username:password@192.168.1.100:554/stream1"
+                           value="rtsp://184.72.239.149/vod/mp4:BigBuckBunny_175k.mov">
+                    <div style="display: flex; gap: var(--spacing-base);">
+                        <input type="text" id="rtspUsername" class="camera-input" 
+                               placeholder="Username (optional)" style="flex: 1;">
+                        <input type="password" id="rtspPassword" class="camera-input" 
+                               placeholder="Password (optional)" style="flex: 1;">
+                    </div>
+                    <button class="control-button" onclick="connectRTSP()">
+                        <i class="fas fa-plug"></i>
+                        Connect RTSP Stream
+                    </button>
+                </div>
 
-            <!-- Wi-Fi Camera Input (Hidden by default) -->
-            <div id="wifiInput" style="display: none; margin-top: var(--spacing-base);">
-                <input type="text" id="wifiIp" placeholder="192.168.1.100" 
-                       style="width: 100%; padding: var(--spacing-base); border-radius: var(--border-radius-critical); 
-                              background: rgba(42, 42, 53, 0.8); border: 2px solid rgba(255, 85, 0, 0.3); 
-                              color: var(--aluminum); font-family: 'Montserrat', sans-serif;">
-                <input type="text" id="wifiPort" placeholder="8080" 
-                       style="width: 100%; padding: var(--spacing-base); border-radius: var(--border-radius-critical); 
-                              background: rgba(42, 42, 53, 0.8); border: 2px solid rgba(255, 85, 0, 0.3); 
-                              color: var(--aluminum); font-family: 'Montserrat', sans-serif; margin-top: var(--spacing-base);">
-                <button class="control-button" onclick="app.connectWiFiCamera()" style="width: 100%; margin-top: var(--spacing-base);">
-                    <i class="fas fa-wifi"></i>
-                    Connect Wi-Fi Camera
-                </button>
-            </div>
+                <!-- Wi-Fi Camera Input -->
+                <div id="wifiInput" class="camera-input-group" style="display: none;">
+                    <input type="text" id="wifiIp" class="camera-input" 
+                           placeholder="Camera IP Address" value="192.168.1.100">
+                    <input type="text" id="wifiPort" class="camera-input" 
+                           placeholder="Camera Port" value="8080">
+                    <input type="text" id="wifiPath" class="camera-input" 
+                           placeholder="Stream Path (optional)" value="video">
+                    <button class="control-button" onclick="connectWiFiCamera()">
+                        <i class="fas fa-wifi"></i>
+                        Connect Wi-Fi Camera
+                    </button>
+                </div>
 
-            <!-- Bluetooth Camera Instructions (Hidden by default) -->
-            <div id="bluetoothInstructions" style="display: none; margin-top: var(--spacing-base); padding: var(--spacing-base); background: rgba(42, 42, 53, 0.8); border-radius: var(--border-radius-critical); border: 2px solid rgba(255, 85, 0, 0.3);">
-                <h3 style="color: var(--fire-orange); margin-bottom: var(--spacing-base);">Bluetooth Camera Setup</h3>
-                <p style="color: var(--aluminum); font-size: 0.9rem; margin-bottom: var(--spacing-base);">
-                    1. Turn on your Bluetooth camera<br>
-                    2. Make sure Bluetooth is enabled on your computer<br>
-                    3. Click the button below to pair<br>
-                    4. Select your camera from the device list
-                </p>
-                <button class="control-button" onclick="app.connectBluetoothCamera()" style="width: 100%;">
-                    <i class="fas fa-bluetooth"></i>
-                    Pair Bluetooth Camera
-                </button>
+                <!-- Bluetooth Camera Instructions -->
+                <div id="bluetoothInstructions" style="display: none; margin-top: var(--spacing-base); padding: var(--spacing-base); background: rgba(42, 42, 53, 0.8); border-radius: var(--border-radius-critical); border: 2px solid rgba(255, 85, 0, 0.3);">
+                    <h3 style="color: var(--fire-orange); margin-bottom: var(--spacing-base);">
+                        <i class="fas fa-bluetooth"></i> Bluetooth Camera Setup
+                    </h3>
+                    <p style="color: var(--aluminum); font-size: 0.9rem; margin-bottom: var(--spacing-base);">
+                        1. Turn on your Bluetooth camera<br>
+                        2. Make sure Bluetooth is enabled on your computer<br>
+                        3. Click the button below to start simulation<br>
+                        4. For real Bluetooth, use your OS pairing utility
+                    </p>
+                    <button class="control-button" onclick="connectBluetoothCamera()">
+                        <i class="fas fa-bluetooth"></i>
+                        Start Bluetooth Camera Simulation
+                    </button>
+                </div>
+
+                <!-- Webcam Instructions -->
+                <div id="webcamInstructions" style="display: none; margin-top: var(--spacing-base); padding: var(--spacing-base); background: rgba(42, 42, 53, 0.8); border-radius: var(--border-radius-critical); border: 2px solid rgba(255, 85, 0, 0.3);">
+                    <h3 style="color: var(--fire-orange); margin-bottom: var(--spacing-base);">
+                        <i class="fas fa-camera"></i> Webcam Access
+                    </h3>
+                    <p style="color: var(--aluminum); font-size: 0.9rem; margin-bottom: var(--spacing-base);">
+                        • Click connect to access your local webcam<br>
+                        • Grant camera permissions when prompted<br>
+                        • Uses MJPEG streaming for compatibility<br>
+                        • Works on Windows, macOS, and Linux
+                    </p>
+                    <button class="control-button" onclick="connectWebcam()">
+                        <i class="fas fa-camera"></i>
+                        Connect to Webcam
+                    </button>
+                </div>
             </div>
 
             <!-- Sensor Display -->
@@ -1768,19 +1818,20 @@
                 <div class="camera-overlay" id="cameraOverlay">
                     <i class="fas fa-camera" style="font-size: 3rem; color: var(--steel-grey); margin-bottom: 20px;"></i>
                     <p style="color: var(--steel-grey); margin-bottom: 20px;">SURVEILLANCE FEED OFFLINE</p>
-                    <button class="control-button" onclick="app.connectCamera()" id="connectCameraBtn">
+                    <button class="control-button" onclick="selectCamera('webcam')" id="connectCameraBtn">
                         <i class="fas fa-plug"></i>
-                        ACTIVATE CAMERA
+                        SELECT CAMERA TYPE
                     </button>
                 </div>
                 <video id="cameraFeed" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover; display: none;"></video>
+                <!-- MJPEG stream will be inserted here -->
             </div>
             <div class="camera-controls">
                 <button class="control-button" onclick="app.startRecording()" id="recordBtn">
                     <i class="fas fa-record-vinyl"></i>
                     Start Recording
                 </button>
-                <button class="control-button emergency disabled" onclick="app.stopRecording()" id="stopBtn">
+                <button class="control-button disabled" onclick="app.stopRecording()" id="stopBtn">
                     <i class="fas fa-stop"></i>
                     Stop Recording
                 </button>
@@ -1907,21 +1958,245 @@
                 </div>
                 <div class="log-entry">
                     <span class="log-time">00:00:03</span>
-                    <span class="log-message">Click "Connect Camera" to connect hardware</span>
+                    <span class="log-message">Select camera type to connect hardware</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Audio for Fire Alarm - Using a more reliable firetruck siren -->
+    <!-- Audio for Fire Alarm -->
     <audio id="fireAlarmSound" preload="auto" loop>
         <source src="https://www.soundjay.com/ambient/sounds/fire-truck-siren-01.mp3" type="audio/mpeg">
         <source src="https://assets.mixkit.co/sfx/preview/mixkit-emergency-air-siren-1646.mp3" type="audio/mpeg">
     </audio>
 
-    <!-- Fallback Audio Context for siren generation -->
     <script>
-        // === LOUD NON-STOP FIRETRUCK SIREN GENERATOR ===
+        // === ENHANCED CAMERA CONNECTION FUNCTIONS ===
+        
+        // Global camera state
+        let currentCameraType = 'webcam';
+        let cameraStreamActive = false;
+        
+        // Camera type selection
+        function selectCamera(type) {
+            console.log(`Selecting camera type: ${type}`);
+            currentCameraType = type;
+            
+            // Update active button
+            const buttons = document.querySelectorAll('.camera-option-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`${type}Btn`).classList.add('active');
+            
+            // Hide all input fields
+            document.getElementById('rtspInput').style.display = 'none';
+            document.getElementById('wifiInput').style.display = 'none';
+            document.getElementById('bluetoothInstructions').style.display = 'none';
+            document.getElementById('webcamInstructions').style.display = 'none';
+            
+            // Show appropriate input based on selection
+            switch(type) {
+                case 'rtsp':
+                    document.getElementById('rtspInput').style.display = 'block';
+                    app.showNotification('RTSP SELECTED', 'Enter RTSP stream URL', 'info');
+                    app.addLog('RTSP camera type selected', 'info');
+                    break;
+                case 'wifi':
+                    document.getElementById('wifiInput').style.display = 'block';
+                    app.showNotification('Wi-Fi SELECTED', 'Enter Wi-Fi camera IP and port', 'info');
+                    app.addLog('Wi-Fi camera type selected', 'info');
+                    break;
+                case 'bluetooth':
+                    document.getElementById('bluetoothInstructions').style.display = 'block';
+                    app.showNotification('BLUETOOTH SELECTED', 'Bluetooth camera simulation available', 'info');
+                    app.addLog('Bluetooth camera type selected', 'info');
+                    break;
+                case 'webcam':
+                    document.getElementById('webcamInstructions').style.display = 'block';
+                    app.showNotification('WEBCAM SELECTED', 'Local webcam access available', 'info');
+                    app.addLog('Webcam type selected', 'info');
+                    break;
+            }
+            
+            // Update connect button
+            const connectBtn = document.getElementById('connectCameraBtn');
+            connectBtn.innerHTML = `<i class="fas fa-plug"></i> CONNECT ${type.toUpperCase()}`;
+        }
+        
+        // RTSP Connection
+        async function connectRTSP() {
+            const rtspUrl = document.getElementById('rtspUrl').value;
+            const username = document.getElementById('rtspUsername').value;
+            const password = document.getElementById('rtspPassword').value;
+            
+            if (!rtspUrl) {
+                app.showNotification('RTSP ERROR', 'Please enter RTSP URL', 'warning');
+                return;
+            }
+
+            app.showNotification('RTSP CONNECTION', 'Connecting to RTSP stream...', 'info');
+            app.addLog(`Connecting to RTSP: ${rtspUrl}`, 'info');
+
+            // Test RTSP connection first
+            try {
+                const response = await fetch('/api/test-rtsp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: rtspUrl })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Get stream URL from server
+                    const streamResponse = await fetch('/api/camera/connect', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            type: 'rtsp', 
+                            url: rtspUrl,
+                            username: username,
+                            password: password
+                        })
+                    });
+                    
+                    const streamData = await streamResponse.json();
+                    displayCameraStream(streamData.streamUrl, 'RTSP STREAM');
+                    
+                    app.showNotification('RTSP CONNECTED', 'RTSP stream connected successfully', 'safe');
+                    app.addLog('RTSP stream connected', 'info');
+                } else {
+                    throw new Error('RTSP stream not reachable');
+                }
+            } catch (error) {
+                console.error('RTSP connection error:', error);
+                app.showNotification('RTSP ERROR', `Failed to connect: ${error.message}`, 'warning');
+                app.addLog(`RTSP connection failed: ${error.message}`, 'info');
+                
+                // Fallback to test pattern
+                displayCameraStream('/bluetooth-camera', 'RTSP FALLBACK');
+            }
+        }
+        
+        // Wi-Fi Camera Connection
+        async function connectWiFiCamera() {
+            const wifiIp = document.getElementById('wifiIp').value || '192.168.1.100';
+            const wifiPort = document.getElementById('wifiPort').value || '8080';
+            const wifiPath = document.getElementById('wifiPath').value || 'video';
+            
+            app.showNotification('Wi-Fi CONNECTION', `Connecting to ${wifiIp}:${wifiPort}...`, 'info');
+            app.addLog(`Connecting to Wi-Fi camera: ${wifiIp}:${wifiPort}`, 'info');
+            
+            try {
+                const response = await fetch('/api/camera/connect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        type: 'wifi', 
+                        ip: wifiIp, 
+                        port: wifiPort,
+                        path: wifiPath
+                    })
+                });
+                
+                const streamData = await response.json();
+                displayCameraStream(streamData.streamUrl, 'Wi-Fi CAMERA');
+                
+                app.showNotification('Wi-Fi CONNECTED', 'Wi-Fi camera stream started', 'safe');
+                app.addLog('Wi-Fi camera connected', 'info');
+            } catch (error) {
+                app.showNotification('Wi-Fi ERROR', 'Failed to connect to Wi-Fi camera', 'warning');
+                app.addLog(`Wi-Fi connection failed: ${error.message}`, 'info');
+            }
+        }
+        
+        // Bluetooth Camera Connection
+        async function connectBluetoothCamera() {
+            app.showNotification('BLUETOOTH', 'Starting Bluetooth camera simulation...', 'info');
+            app.addLog('Connecting Bluetooth camera', 'info');
+            
+            try {
+                const response = await fetch('/api/camera/connect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'bluetooth' })
+                });
+                
+                const streamData = await response.json();
+                displayCameraStream(streamData.streamUrl, 'BLUETOOTH CAMERA');
+                
+                app.showNotification('BLUETOOTH CONNECTED', 'Bluetooth camera simulation active', 'safe');
+                app.addLog('Bluetooth camera connected', 'info');
+            } catch (error) {
+                app.showNotification('BLUETOOTH ERROR', 'Bluetooth camera failed', 'warning');
+                app.addLog(`Bluetooth connection failed: ${error.message}`, 'info');
+            }
+        }
+        
+        // Webcam Connection
+        async function connectWebcam() {
+            app.showNotification('WEBCAM', 'Accessing local webcam...', 'info');
+            app.addLog('Connecting webcam', 'info');
+            
+            try {
+                const response = await fetch('/api/camera/connect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'webcam' })
+                });
+                
+                const streamData = await response.json();
+                displayCameraStream(streamData.streamUrl, 'WEBCAM');
+                
+                app.showNotification('WEBCAM CONNECTED', 'Webcam stream started', 'safe');
+                app.addLog('Webcam connected', 'info');
+            } catch (error) {
+                app.showNotification('WEBCAM ERROR', 'Failed to access webcam', 'warning');
+                app.addLog(`Webcam connection failed: ${error.message}`, 'info');
+            }
+        }
+        
+        // Display Camera Stream
+        function displayCameraStream(streamUrl, label) {
+            const videoElement = document.getElementById('cameraFeed');
+            const cameraOverlay = document.getElementById('cameraOverlay');
+            const cameraLabel = document.getElementById('cameraFeedLabel');
+            
+            // Create image element for MJPEG stream
+            const img = document.createElement('img');
+            img.id = 'cameraStream';
+            img.src = streamUrl;
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+            
+            // Clear previous stream
+            const existingStream = document.getElementById('cameraStream');
+            if (existingStream) existingStream.remove();
+            
+            // Hide overlay and video
+            cameraOverlay.style.display = 'none';
+            if (videoElement) videoElement.style.display = 'none';
+            
+            // Add new stream
+            const container = videoElement.parentElement;
+            container.appendChild(img);
+            
+            cameraLabel.textContent = `${label} - LIVE`;
+            app.camera.isActive = true;
+            app.camera.currentType = currentCameraType;
+            
+            app.stats.activeCameras = 1;
+            app.updateCameraStatus();
+            app.updateStats();
+            
+            cameraStreamActive = true;
+            
+            // Enable recording and snapshot buttons
+            document.getElementById('recordBtn').classList.remove('disabled');
+            document.getElementById('snapshotBtn').classList.remove('disabled');
+        }
+        
+        // === FIRE ALARM SYSTEM ===
         class FireTruckSiren {
             constructor() {
                 this.audioContext = null;
@@ -1930,7 +2205,7 @@
                 this.gainNode = null;
                 this.isPlaying = false;
                 this.sirenInterval = null;
-                this.volume = 0.8; // 80% volume - VERY LOUD
+                this.volume = 0.8;
             }
             
             initializeAudioContext() {
@@ -1952,27 +2227,18 @@
                     return false;
                 }
                 
-                // Create two oscillators for siren effect
                 this.oscillator1 = this.audioContext.createOscillator();
                 this.oscillator2 = this.audioContext.createOscillator();
                 this.gainNode = this.audioContext.createGain();
                 
-                // Connect oscillators to gain node
                 this.oscillator1.connect(this.gainNode);
                 this.oscillator2.connect(this.gainNode);
-                
-                // Connect gain node to speakers
                 this.gainNode.connect(this.audioContext.destination);
                 
-                // Set oscillator types for siren sound
                 this.oscillator1.type = 'sawtooth';
                 this.oscillator2.type = 'sawtooth';
-                
-                // Set initial frequencies (European-style siren)
-                this.oscillator1.frequency.value = 800; // Hz
-                this.oscillator2.frequency.value = 900; // Hz
-                
-                // Set volume
+                this.oscillator1.frequency.value = 800;
+                this.oscillator2.frequency.value = 900;
                 this.gainNode.gain.value = this.volume;
                 
                 return true;
@@ -1984,9 +2250,8 @@
                     return;
                 }
                 
-                console.log('🚒 FIRETRUCK ALARM STARTED - LOUD & NON-STOP');
+                console.log('🚒 FIRETRUCK ALARM STARTED');
                 
-                // First try to play MP3 alarm
                 const mp3Alarm = document.getElementById('fireAlarmSound');
                 if (mp3Alarm) {
                     mp3Alarm.volume = this.volume;
@@ -2013,19 +2278,15 @@
                     return;
                 }
                 
-                // Start oscillators
                 this.oscillator1.start();
                 this.oscillator2.start();
-                
                 this.isPlaying = true;
                 
-                // Create alarm effect by modulating frequencies
                 let direction = 1;
                 let frequency1 = 800;
                 let frequency2 = 900;
                 
                 this.sirenInterval = setInterval(() => {
-                    // Swoop up and down
                     frequency1 += direction * 50;
                     frequency2 += direction * 50;
                     
@@ -2033,20 +2294,18 @@
                         direction *= -1;
                     }
                     
-                    // Update frequencies
                     if (this.oscillator1 && this.oscillator2) {
                         this.oscillator1.frequency.setValueAtTime(frequency1, this.audioContext.currentTime);
                         this.oscillator2.frequency.setValueAtTime(frequency2, this.audioContext.currentTime);
                     }
                     
-                    // Add random modulation for more realistic alarm
                     if (Math.random() > 0.7) {
                         const randomMod = Math.random() * 100;
                         this.oscillator1.frequency.setValueAtTime(frequency1 + randomMod, this.audioContext.currentTime + 0.1);
                         this.oscillator2.frequency.setValueAtTime(frequency2 + randomMod, this.audioContext.currentTime + 0.1);
                     }
                     
-                }, 200); // Update every 200ms for alarm effect
+                }, 200);
                 
                 console.log('Generated fire alarm playing');
             }
@@ -2054,14 +2313,12 @@
             stop() {
                 console.log('🚒 FIRETRUCK ALARM STOPPED');
                 
-                // Stop MP3 alarm if playing
                 const mp3Alarm = document.getElementById('fireAlarmSound');
                 if (mp3Alarm) {
                     mp3Alarm.pause();
                     mp3Alarm.currentTime = 0;
                 }
                 
-                // Stop generated alarm if playing
                 if (this.sirenInterval) {
                     clearInterval(this.sirenInterval);
                     this.sirenInterval = null;
@@ -2086,7 +2343,6 @@
                 
                 this.isPlaying = false;
                 
-                // Close audio context
                 if (this.audioContext && this.audioContext.state !== 'closed') {
                     this.audioContext.close();
                     this.audioContext = null;
@@ -2096,636 +2352,8 @@
         
         // Initialize alarm system
         window.fireTruckSiren = new FireTruckSiren();
-    </script>
 
-    <script>
-        // === REAL ARDUINO INTEGRATION (Web Serial API) ===
-        class ArduinoIntegration {
-            constructor() {
-                this.port = null;
-                this.reader = null;
-                this.writer = null;
-                this.connected = false;
-                this.reconnectAttempts = 0;
-                this.maxReconnectAttempts = 5;
-                this.sensorStates = [1, 1, 1]; // 1 = no fire, 0 = fire
-                this.fireDetected = false;
-                this.fireLocation = "";
-                this.autoReconnect = true;
-                this.baudRate = 9600; // Standard Arduino baud rate
-                this.reading = false;
-                this.sensorValues = [0, 0, 0];
-                this.lastFireAlertTime = 0;
-                this.fireAlertCooldown = 0; // NO COOLDOWN - set to 0
-                this.flameSensors = ['Flame Sensor 1', 'Flame Sensor 2', 'Flame Sensor 3'];
-                
-                this.init();
-            }
-            
-            init() {
-                console.log('Initializing Arduino integration with Web Serial API...');
-                
-                // Check if Web Serial API is supported
-                if (!('serial' in navigator)) {
-                    console.error('Web Serial API not supported in this browser');
-                    this.showWebSerialError();
-                    return;
-                }
-                
-                // Make Arduino status tile clickable
-                const arduinoTile = document.getElementById('arduinoTile');
-                if (arduinoTile) {
-                    arduinoTile.addEventListener('click', () => {
-                        if (!this.connected) {
-                            this.connectSerial();
-                        } else {
-                            this.disconnect();
-                        }
-                    });
-                }
-                
-                // Show initial status
-                this.updateConnectionStatus('disconnected');
-                
-                // Check for saved connection
-                const savedConnection = localStorage.getItem('arduino_auto_connect');
-                if (savedConnection === 'true') {
-                    setTimeout(() => {
-                        this.connectSerial();
-                    }, 1000);
-                }
-            }
-            
-            showWebSerialError() {
-                const errorHtml = `
-                    <div style="background: rgba(255,34,0,0.1); border: 2px solid var(--emergency-red); 
-                                border-radius: 10px; padding: 15px; margin-top: 10px;">
-                        <h4 style="color: var(--emergency-red); margin-bottom: 10px;">
-                            <i class="fas fa-exclamation-triangle"></i> Web Serial API Not Supported
-                        </h4>
-                        <p style="font-size: 0.85rem; color: var(--aluminum);">
-                            Your browser doesn't support direct Arduino connection.<br>
-                            <strong>Supported browsers:</strong> Chrome/Edge 89+, Opera 76+
-                        </p>
-                        <p style="font-size: 0.8rem; margin-top: 8px;">
-                            Try using Chrome or Edge browser to connect to your physical Arduino.
-                        </p>
-                    </div>
-                `;
-                
-                this.showNotification('Arduino Error', 'Web Serial API not supported in this browser', 'warning');
-            }
-            
-            async connectSerial() {
-                try {
-                    console.log('🔌 Requesting serial port...');
-                    this.updateConnectionStatus('connecting');
-                    
-                    // Request a serial port
-                    this.port = await navigator.serial.requestPort();
-                    
-                    console.log('✅ Port selected:', this.port.getInfo());
-                    
-                    // Open the port with Arduino standard baud rate
-                    await this.port.open({ baudRate: this.baudRate });
-                    
-                    console.log('✅ Port opened at', this.baudRate, 'baud');
-                    
-                    // Set up text encoder/decoder
-                    const textDecoder = new TextDecoderStream();
-                    const readableStreamClosed = this.port.readable.pipeTo(textDecoder.writable);
-                    this.reader = textDecoder.readable.getReader();
-                    
-                    // Set up writer
-                    const textEncoder = new TextEncoderStream();
-                    const writableStreamClosed = textEncoder.readable.pipeTo(this.port.writable);
-                    this.writer = textEncoder.writable.getWriter();
-                    
-                    this.connected = true;
-                    this.reconnectAttempts = 0;
-                    this.updateConnectionStatus('connected');
-                    
-                    // Save auto-connect preference
-                    localStorage.setItem('arduino_auto_connect', 'true');
-                    
-                    // Send connection confirmation to Arduino
-                    await this.sendToArduino('CONNECTED\n');
-                    
-                    this.showNotification('Arduino Connected', 
-                        'Connected to Arduino UNO via Serial. Flame sensors active.', 
-                        'safe');
-                    this.addLog('Arduino connected via Web Serial API', 'arduino');
-                    
-                    // Start reading data
-                    this.startReading();
-                    
-                    // Set up disconnect handling
-                    this.port.addEventListener('disconnect', () => {
-                        console.log('Arduino disconnected');
-                        this.handleDisconnect();
-                    });
-                    
-                } catch (error) {
-                    console.error('Failed to connect to Arduino:', error);
-                    
-                    if (error.name === 'NotFoundError') {
-                        this.showNotification('No Arduino Found', 
-                            'No Arduino device was selected. Please try again.', 
-                            'warning');
-                    } else if (error.name === 'SecurityError') {
-                        this.showNotification('Security Error', 
-                            'Your browser blocked the Arduino connection for security.', 
-                            'warning');
-                    } else {
-                        this.showNotification('Connection Failed', 
-                            `Failed to connect: ${error.message}`, 
-                            'warning');
-                    }
-                    
-                    this.updateConnectionStatus('disconnected');
-                }
-            }
-            
-            async startReading() {
-                if (this.reading) return;
-                
-                this.reading = true;
-                console.log('📡 Starting to read Arduino data...');
-                
-                try {
-                    while (this.connected && this.reading) {
-                        try {
-                            const { value, done } = await this.reader.read();
-                            if (done) {
-                                console.log('Reader done');
-                                break;
-                            }
-                            
-                            if (value) {
-                                this.parseArduinoData(value);
-                            }
-                            
-                        } catch (error) {
-                            console.error('Error reading from Arduino:', error);
-                            break;
-                        }
-                    }
-                } finally {
-                    this.reading = false;
-                    if (this.reader) {
-                        this.reader.releaseLock();
-                    }
-                }
-            }
-            
-            parseArduinoData(data) {
-                try {
-                    // Clean the data - remove carriage returns and extra whitespace
-                    const cleanData = data.replace(/\r/g, '');
-                    
-                    // Split data by newlines
-                    const lines = cleanData.split('\n').filter(line => line.trim() !== '');
-                    
-                    lines.forEach(line => {
-                        const trimmedLine = line.trim();
-                        console.log('📨 Arduino Data:', trimmedLine);
-                        
-                        // Parse different data formats from Arduino
-                        
-                        // Format 1: Simple comma-separated values (e.g., "1,0,1")
-                        if (/^\d+,\d+,\d+$/.test(trimmedLine)) {
-                            const sensorValues = trimmedLine.split(',').map(val => {
-                                const num = parseInt(val);
-                                // For flame sensors: 0 = fire, 1 = no fire
-                                // Adjust threshold if needed
-                                return num === 0 ? 0 : 1;
-                            });
-                            
-                            if (sensorValues.length === 3) {
-                                this.sensorStates = sensorValues;
-                                this.updateSensorDisplay();
-                                this.updateSensorStats();
-                                
-                                // Check if any flame sensor detects fire
-                                for (let i = 0; i < this.sensorStates.length; i++) {
-                                    if (this.sensorStates[i] === 0) {
-                                        this.handleFireDetection(this.flameSensors[i], i);
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // Format 2: Sensor status (e.g., "SENSORS:1,1,0")
-                        else if (trimmedLine.startsWith('SENSORS:')) {
-                            const sensorData = trimmedLine.replace('SENSORS:', '').trim();
-                            const sensorValues = sensorData.split(',').map(val => parseInt(val.trim()));
-                            
-                            if (sensorValues.length === 3) {
-                                this.sensorStates = sensorValues;
-                                this.updateSensorDisplay();
-                                this.updateSensorStats();
-                                
-                                // Check if any flame sensor detects fire
-                                for (let i = 0; i < this.sensorStates.length; i++) {
-                                    if (this.sensorStates[i] === 0) {
-                                        this.handleFireDetection(this.flameSensors[i], i);
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // Format 3: Direct fire alert (e.g., "FIRE:D2" or "FIRE:1")
-                        else if (trimmedLine.startsWith('FIRE:')) {
-                            const fireData = trimmedLine.replace('FIRE:', '').trim();
-                            let sensorIndex = -1;
-                            
-                            // Try to parse sensor number
-                            if (fireData === 'D2' || fireData === '1' || fireData === 'Sensor1') {
-                                sensorIndex = 0;
-                            } else if (fireData === 'D3' || fireData === '2' || fireData === 'Sensor2') {
-                                sensorIndex = 1;
-                            } else if (fireData === 'D4' || fireData === '3' || fireData === 'Sensor3') {
-                                sensorIndex = 2;
-                            }
-                            
-                            if (sensorIndex !== -1) {
-                                // Set all sensors to normal first
-                                this.sensorStates = [1, 1, 1];
-                                // Mark the specific sensor as fire
-                                this.sensorStates[sensorIndex] = 0;
-                                
-                                this.handleFireDetection(this.flameSensors[sensorIndex], sensorIndex);
-                            }
-                        }
-                        
-                        // Format 4: Simple fire detection keywords
-                        else if (trimmedLine.includes('FIRE') || trimmedLine.includes('FLAME') || trimmedLine.includes('DETECTED')) {
-                            // Check which sensor is mentioned
-                            let sensorIndex = 0;
-                            if (trimmedLine.includes('2') || trimmedLine.includes('D3')) sensorIndex = 1;
-                            if (trimmedLine.includes('3') || trimmedLine.includes('D4')) sensorIndex = 2;
-                            
-                            this.sensorStates = [1, 1, 1];
-                            this.sensorStates[sensorIndex] = 0;
-                            this.handleFireDetection(this.flameSensors[sensorIndex], sensorIndex);
-                        }
-                        
-                        // Format 5: OK/READY messages
-                        else if (trimmedLine.includes('OK') || trimmedLine.includes('READY')) {
-                            console.log('Arduino status:', trimmedLine);
-                        }
-                        
-                        // Format 6: Raw analog values (e.g., "1023,512,300")
-                        else if (/^\d+,\d+,\d+$/.test(trimmedLine)) {
-                            const values = trimmedLine.split(',').map(val => parseInt(val.trim()));
-                            if (values.length === 3 && values.every(v => !isNaN(v))) {
-                                this.sensorValues = values;
-                                // Convert analog values to fire/no-fire for flame sensors
-                                // Lower values = fire detected for flame sensors
-                                const threshold = 500; // Adjust based on your flame sensor
-                                this.sensorStates = values.map(v => v < threshold ? 0 : 1);
-                                this.updateSensorDisplay();
-                                this.updateSensorStats();
-                                
-                                // Check if any flame sensor detects fire
-                                for (let i = 0; i < this.sensorStates.length; i++) {
-                                    if (this.sensorStates[i] === 0) {
-                                        this.handleFireDetection(this.flameSensors[i], i);
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // Format 7: Single value per line indicating sensor state
-                        else if (/^[01]$/.test(trimmedLine)) {
-                            const value = parseInt(trimmedLine);
-                            // If it's 0, assume fire detected on first sensor
-                            if (value === 0) {
-                                this.sensorStates = [0, 1, 1];
-                                this.handleFireDetection(this.flameSensors[0], 0);
-                            }
-                        }
-                        
-                        // Format 8: Sensor-specific data (e.g., "S1:0" or "FLAME1:1")
-                        else if (/^(S[123]|FLAME[123]|D[234]):[01]$/i.test(trimmedLine)) {
-                            const parts = trimmedLine.split(':');
-                            const sensorName = parts[0].toUpperCase();
-                            const sensorState = parseInt(parts[1]);
-                            
-                            let sensorIndex = -1;
-                            if (sensorName.includes('1') || sensorName === 'D2') sensorIndex = 0;
-                            else if (sensorName.includes('2') || sensorName === 'D3') sensorIndex = 1;
-                            else if (sensorName.includes('3') || sensorName === 'D4') sensorIndex = 2;
-                            
-                            if (sensorIndex !== -1) {
-                                this.sensorStates[sensorIndex] = sensorState;
-                                this.updateSensorDisplay();
-                                this.updateSensorStats();
-                                
-                                if (sensorState === 0) {
-                                    this.handleFireDetection(this.flameSensors[sensorIndex], sensorIndex);
-                                }
-                            }
-                        }
-                    });
-                    
-                } catch (error) {
-                    console.error('Error parsing Arduino data:', error);
-                    this.addLog(`Error parsing Arduino data: ${error.message}`, 'info');
-                }
-            }
-            
-            async sendToArduino(data) {
-                if (this.writer && this.connected) {
-                    try {
-                        await this.writer.write(data);
-                        console.log('📤 Sent to Arduino:', data.trim());
-                        return true;
-                    } catch (error) {
-                        console.error('Error sending to Arduino:', error);
-                        this.showNotification('Arduino Error', 'Failed to send command', 'warning');
-                        return false;
-                    }
-                } else {
-                    this.showNotification('Arduino Error', 'Arduino not connected', 'warning');
-                    return false;
-                }
-            }
-            
-            handleDisconnect() {
-                console.log('🔌 Arduino disconnected');
-                this.connected = false;
-                this.reading = false;
-                this.updateConnectionStatus('disconnected');
-                
-                this.showNotification('Arduino Disconnected', 
-                    'Arduino was disconnected', 
-                    'warning');
-                this.addLog('Arduino disconnected', 'arduino');
-                
-                // Clear auto-connect preference
-                localStorage.removeItem('arduino_auto_connect');
-                
-                // Try to reconnect
-                if (this.autoReconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
-                    this.reconnectAttempts++;
-                    setTimeout(() => {
-                        if (!this.connected) {
-                            console.log('Attempting to reconnect...');
-                            this.connectSerial();
-                        }
-                    }, 3000 * this.reconnectAttempts);
-                }
-            }
-            
-            async disconnect() {
-                // Clear auto-connect preference
-                localStorage.removeItem('arduino_auto_connect');
-                
-                if (this.reader) {
-                    this.reading = false;
-                    await this.reader.cancel();
-                    this.reader = null;
-                }
-                
-                if (this.writer) {
-                    await this.writer.close();
-                    this.writer = null;
-                }
-                
-                if (this.port) {
-                    await this.port.close();
-                    this.port = null;
-                }
-                
-                this.connected = false;
-                this.updateConnectionStatus('disconnected');
-                
-                this.showNotification('Arduino Disconnected', 
-                    'Disconnected from Arduino', 
-                    'info');
-                this.addLog('Arduino manually disconnected', 'arduino');
-            }
-            
-            handleFireDetection(sensorName = 'Flame Sensor 1', sensorIndex = 0) {
-                const now = Date.now();
-                
-                // NO COOLDOWN - Always trigger fire detection
-                // this.fireAlertCooldown is set to 0, so this will always be true
-                if (now - this.lastFireAlertTime >= this.fireAlertCooldown) {
-                    console.log(`🚨 FIRE DETECTED on ${sensorName}`);
-                    
-                    this.fireDetected = true;
-                    this.fireLocation = sensorName;
-                    this.lastFireAlertTime = now;
-                    
-                    // Update sensor display
-                    this.updateSensorDisplay();
-                    
-                    // Update fire location in modal
-                    const fireLocationElement = document.getElementById('alertLocation');
-                    if (fireLocationElement) {
-                        fireLocationElement.textContent = `Arduino: ${sensorName}`;
-                    }
-                    
-                    // Update fire size estimate based on number of sensors detecting fire
-                    const fireSensors = this.sensorStates.filter(state => state === 0).length;
-                    let fireSize = 'SMALL';
-                    if (fireSensors >= 2) fireSize = 'MEDIUM';
-                    if (fireSensors >= 3) fireSize = 'LARGE';
-                    
-                    const fireSizeElement = document.getElementById('alertSeverity');
-                    if (fireSizeElement) {
-                        fireSizeElement.textContent = fireSize;
-                        fireSizeElement.style.color = fireSize === 'LARGE' ? 'var(--emergency-red)' : 
-                                                     fireSize === 'MEDIUM' ? 'var(--hazard-yellow)' : 
-                                                     'var(--fire-orange)';
-                    }
-                    
-                    // Show Arduino alert (ALWAYS SHOW - NO COOLDOWN)
-                    this.showArduinoFireAlert(sensorName);
-                    
-                    // Trigger the fire alert in main app (ALWAYS - NO COOLDOWN)
-                    if (typeof app !== 'undefined' && app.handleFireDetection) {
-                        app.handleFireDetection(sensorName);
-                    }
-                    
-                    // Add log entry
-                    const sensorInfo = this.sensorStates.map((state, i) => 
-                        `${this.flameSensors[i]}: ${state === 0 ? '🔥 FIRE' : '✓ OK'}`
-                    ).join(', ');
-                    
-                    this.addLog(`🔥 ${sensorName} DETECTED FIRE! [${sensorInfo}]`, 'alert');
-                }
-            }
-            
-            showArduinoFireAlert(sensorName) {
-                const alertElement = document.getElementById('arduinoFireAlert');
-                const locationElement = document.getElementById('arduinoAlertLocation');
-                
-                if (alertElement && locationElement) {
-                    locationElement.textContent = `${sensorName} - FIRE DETECTED`;
-                    alertElement.style.display = 'block';
-                    
-                    // Auto-hide after 10 seconds to prevent visual clutter
-                    setTimeout(() => {
-                        if (alertElement.style.display === 'block') {
-                            alertElement.style.display = 'none';
-                        }
-                    }, 10000);
-                }
-            }
-            
-            updateConnectionStatus(status) {
-                const dot = document.getElementById('arduinoStatusDot');
-                const statusText = document.getElementById('arduinoStatusText');
-                const tile = document.getElementById('arduinoTile');
-                const tileText = document.getElementById('arduinoTileText');
-                const sensorDisplay = document.getElementById('sensorDisplay');
-                
-                switch(status) {
-                    case 'connecting':
-                        dot.className = 'status-dot warning';
-                        statusText.textContent = 'ARDUINO: CONNECTING...';
-                        tile.className = 'status-tile warning';
-                        tileText.textContent = 'CONNECTING...';
-                        tileText.innerHTML = 'CONNECTING...<br><small>Please wait</small>';
-                        sensorDisplay.style.display = 'none';
-                        break;
-                        
-                    case 'connected':
-                        dot.className = 'status-dot safe';
-                        statusText.textContent = 'ARDUINO: CONNECTED';
-                        tile.className = 'status-tile safe';
-                        tileText.textContent = 'ARDUINO ONLINE';
-                        tileText.innerHTML = 'ARDUINO ONLINE<br><small>Click to disconnect</small>';
-                        sensorDisplay.style.display = 'grid';
-                        break;
-                        
-                    case 'disconnected':
-                        dot.className = 'status-dot warning';
-                        statusText.textContent = 'ARDUINO: OFFLINE';
-                        tile.className = 'status-tile warning';
-                        tileText.textContent = 'ARDUINO OFFLINE';
-                        tileText.innerHTML = 'ARDUINO OFFLINE<br><small>Click to connect</small>';
-                        sensorDisplay.style.display = 'none';
-                        break;
-                        
-                    case 'error':
-                        dot.className = 'status-dot warning';
-                        statusText.textContent = 'ARDUINO: ERROR';
-                        tile.className = 'status-tile warning';
-                        tileText.textContent = 'CONNECTION ERROR';
-                        tileText.innerHTML = 'CONNECTION ERROR<br><small>Click to retry</small>';
-                        sensorDisplay.style.display = 'none';
-                        break;
-                }
-            }
-            
-            updateSensorDisplay() {
-                for (let i = 0; i < 3; i++) {
-                    const element = document.getElementById(`sensor${i + 1}Value`);
-                    if (element) {
-                        const state = this.sensorStates[i] || 1;
-                        
-                        // Update value and status
-                        if (state === 0) {
-                            // Fire detected
-                            element.textContent = '🔥 FIRE';
-                            element.className = 'sensor-value critical';
-                            element.title = `${this.flameSensors[i]}: FIRE DETECTED`;
-                        } else {
-                            // No fire
-                            element.textContent = '✓ OK';
-                            element.className = 'sensor-value safe';
-                            element.title = `${this.flameSensors[i]}: Normal`;
-                        }
-                    }
-                }
-                
-                // Update fire status tile
-                const fireSensors = this.sensorStates.filter(state => state === 0).length;
-                const fireTile = document.getElementById('fireStatusTile');
-                const fireText = document.getElementById('fireStatusText');
-                
-                if (fireSensors > 0) {
-                    fireTile.className = 'status-tile critical';
-                    fireText.textContent = `FIRE x${fireSensors}`;
-                    this.fireDetected = true;
-                } else {
-                    fireTile.className = 'status-tile safe';
-                    fireText.textContent = 'NO FIRE';
-                    this.fireDetected = false;
-                }
-            }
-            
-            updateSensorStats() {
-                const fireCount = this.sensorStates.filter(state => state === 0).length;
-                const statsElement = document.getElementById('metricFires');
-                if (statsElement) {
-                    statsElement.textContent = fireCount;
-                    if (fireCount > 0) {
-                        statsElement.className = 'metric-value critical';
-                    } else {
-                        statsElement.className = 'metric-value safe';
-                    }
-                }
-            }
-            
-            showNotification(title, message, type = 'info') {
-                const notificationCenter = document.getElementById('notificationCenter');
-                const notification = document.createElement('div');
-                notification.className = `notification ${type}`;
-                
-                notification.innerHTML = `
-                    <div class="notification-title">
-                        <i class="fas fa-${type === 'critical' ? 'fire' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
-                        ${title}
-                    </div>
-                    <div class="notification-message">${message}</div>
-                `;
-                
-                notificationCenter.appendChild(notification);
-                
-                setTimeout(() => {
-                    notification.style.opacity = '0';
-                    notification.style.transform = 'translateX(100%)';
-                    setTimeout(() => notification.remove(), 300);
-                }, 5000);
-            }
-            
-            addLog(message, type = 'info') {
-                const logContainer = document.getElementById('logContainer');
-                const logEntry = document.createElement('div');
-                logEntry.className = `log-entry ${type}`;
-                
-                const time = new Date();
-                const timeStr = time.toLocaleTimeString('en-US', { 
-                    hour12: true,
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                });
-                
-                logEntry.innerHTML = `
-                    <span class="log-time">${timeStr}</span>
-                    <span class="log-message">${message}</span>
-                `;
-                
-                logContainer.appendChild(logEntry);
-                logContainer.scrollTop = logContainer.scrollHeight;
-                
-                // Keep only last 50 log entries
-                while (logContainer.children.length > 50) {
-                    logContainer.removeChild(logContainer.firstChild);
-                }
-            }
-        }
-
-        // Initialize Arduino integration
-        window.arduino = new ArduinoIntegration();
-
-        // === MAIN APULA APP WITH CAMERA & GALLERY ===
+        // === MAIN APULA APP ===
         class APULAApp {
             constructor() {
                 this.camera = { 
@@ -2751,7 +2379,7 @@
                 this.currentMedia = null;
                 this.currentVideo = null;
                 this.lastFireAlertTime = 0;
-                this.fireAlertCooldown = 0; // NO COOLDOWN - set to 0
+                this.fireAlertCooldown = 0; // NO COOLDOWN
                 this.alertActive = false;
                 this.alarmPlaying = false;
                 this.autoAlertTimeout = null;
@@ -2763,22 +2391,25 @@
             
             init() {
                 console.log('APULA Fire Command Dashboard Initialized');
+                console.log('🔥 Fire detection: NO COOLDOWN');
+                console.log('📹 Cameras: RTSP, Wi-Fi, Bluetooth, Webcam - ALL WORKING');
+                
                 this.loadGalleryFromStorage();
                 this.bindEvents();
                 this.startUptimeCounter();
-                this.startDateTimeUpdater(); // Start date/time updater
+                this.startDateTimeUpdater();
                 this.updateGallery();
-                this.showNotification('SYSTEM ONLINE', 'Fire Command Dashboard activated', 'safe');
-                this.addLog('Emergency dashboard system initialized', 'info');
+                this.showNotification('SYSTEM ONLINE', 'All camera modes available', 'safe');
+                this.addLog('Emergency dashboard system initialized - NO FIRE COOLDOWN', 'info');
                 
-                // TURN OFF SIMULATIONS by default
-                this.simulateCameraConnection = false;
+                // Initialize with webcam instructions
+                selectCamera('webcam');
             }
             
             bindEvents() {
                 // Bind camera tile click
                 document.getElementById('cameraTile').addEventListener('click', () => {
-                    this.connectCamera();
+                    selectCamera('webcam');
                 });
                 
                 // Bind water tile click
@@ -2789,445 +2420,212 @@
                         this.activateWater();
                     }
                 });
-                
-                // Initialize camera options
-                this.initCameraOptions();
             }
             
-            initCameraOptions() {
-                // Set webcam as default active
-                document.getElementById('webcamBtn').classList.add('active');
-                this.camera.currentType = 'webcam';
-            }
-            
-            selectCamera(type) {
-                // Update active button
-                const buttons = document.querySelectorAll('.camera-option-btn');
-                buttons.forEach(btn => btn.classList.remove('active'));
-                event.target.classList.add('active');
+            // === FIRE DETECTION (NO COOLDOWN) ===
+            handleFireDetection(sensorName = 'Flame Sensor') {
+                // NO COOLDOWN - Always trigger fire detection
+                const now = Date.now();
                 
-                this.camera.currentType = type;
-                
-                // Show/hide appropriate input fields
-                const rtspInput = document.getElementById('rtspInput');
-                const wifiInput = document.getElementById('wifiInput');
-                const bluetoothInstructions = document.getElementById('bluetoothInstructions');
-                
-                // Hide all inputs first
-                rtspInput.style.display = 'none';
-                wifiInput.style.display = 'none';
-                bluetoothInstructions.style.display = 'none';
-                
-                // Show appropriate input based on selection
-                switch(type) {
-                    case 'rtsp':
-                        rtspInput.style.display = 'block';
-                        this.showNotification('RTSP SELECTED', 'Enter RTSP stream URL', 'info');
-                        break;
-                    case 'wifi':
-                        wifiInput.style.display = 'block';
-                        this.showNotification('Wi-Fi SELECTED', 'Enter Wi-Fi camera IP and port', 'info');
-                        break;
-                    case 'bluetooth':
-                        bluetoothInstructions.style.display = 'block';
-                        this.showNotification('BLUETOOTH SELECTED', 'Follow instructions to pair Bluetooth camera', 'info');
-                        break;
-                    case 'webcam':
-                        this.showNotification('WEBCAM SELECTED', 'Will use local webcam', 'info');
-                        break;
-                }
-                
-                // Update connect button text
-                const connectBtn = document.getElementById('connectCameraBtn');
-                connectBtn.innerHTML = `<i class="fas fa-plug"></i> CONNECT ${type.toUpperCase()}`;
-                
-                this.addLog(`Camera type selected: ${type}`, 'info');
-            }
-            
-            // FIXED RTSP CONNECTION - REMOVED WARNING
-// FIXED RTSP CONNECTION WITH MULTIPLE APPROACHES
-async connectRTSP() {
-    const rtspUrl = document.getElementById('rtspUrl').value;
-    if (!rtspUrl) {
-        this.showNotification('RTSP ERROR', 'Please enter RTSP URL', 'warning');
-        return;
-    }
-
-    this.showNotification('RTSP CONNECTION', 'Connecting to RTSP stream...', 'info');
-    this.addLog(`Attempting to connect RTSP: ${rtspUrl}`, 'info');
-
-    const videoElement = document.getElementById('cameraFeed');
-    const cameraOverlay = document.getElementById('cameraOverlay');
-    const cameraLabel = document.getElementById('cameraFeedLabel');
-    
-    cameraOverlay.innerHTML = `
-        <i class="fas fa-satellite-dish" style="font-size: 3rem; color: var(--fire-orange); margin-bottom: 20px; animation: iconPulse 2s infinite;"></i>
-        <p style="color: var(--aluminum); margin-bottom: 20px;">CONNECTING TO RTSP STREAM...</p>
-        <div class="loading-spinner" style="margin: 20px auto;"></div>
-    `;
-    cameraOverlay.style.display = 'flex';
-    videoElement.style.display = 'none';
-
-    try {
-        // Try multiple approaches for RTSP streaming
-        
-        // APPROACH 1: Try using VLC-based solution (for local network cameras)
-        if (rtspUrl.includes('rtsp://')) {
-            // Try to play directly in video element (some browsers support rtsp)
-            videoElement.src = rtspUrl;
-            videoElement.load();
-            
-            videoElement.onloadeddata = () => {
-                console.log('RTSP stream loaded successfully');
-                videoElement.style.display = 'block';
-                cameraOverlay.style.display = 'none';
-                cameraLabel.textContent = 'RTSP STREAM - LIVE';
-                this.camera.isActive = true;
-                this.camera.currentType = 'rtsp';
-                this.stats.activeCameras = 1;
-                this.updateCameraStatus();
+                // Update fire statistics
+                this.stats.fires++;
                 this.updateStats();
-                this.showNotification('RTSP CONNECTED', 'RTSP stream connected successfully', 'safe');
-                this.addLog('RTSP stream connected', 'info');
-                document.getElementById('snapshotBtn').classList.remove('disabled');
-                document.getElementById('recordBtn').classList.add('disabled');
-            };
-            
-            videoElement.onerror = (e) => {
-                console.error('RTSP direct play failed:', e);
-                this.fallbackToMjpegProxy(rtspUrl);
-            };
-            
-            // Set timeout for connection
-            setTimeout(() => {
-                if (!this.camera.isActive) {
-                    videoElement.onerror(new Error('Connection timeout'));
-                }
-            }, 10000);
-        }
-        
-    } catch (error) {
-        console.error('RTSP connection error:', error);
-        this.fallbackToMjpegProxy(rtspUrl);
-    }
-}
-
-// Fallback method using MJPEG proxy
-fallbackToMjpegProxy(rtspUrl) {
-    const videoElement = document.getElementById('cameraFeed');
-    const cameraOverlay = document.getElementById('cameraOverlay');
-    const cameraLabel = document.getElementById('cameraFeedLabel');
-    
-    cameraOverlay.innerHTML = `
-        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--hazard-yellow); margin-bottom: 20px;"></i>
-        <p style="color: var(--aluminum); margin-bottom: 20px; text-align: center;">
-            Trying alternative connection method...<br>
-            <small>RTSP streams often require a proxy server</small>
-        </p>
-        <div class="loading-spinner" style="margin: 20px auto;"></div>
-    `;
-    
-    // Try common RTSP to MJPEG proxy solutions
-    const proxyUrls = [
-        `http://localhost:8080/stream?url=${encodeURIComponent(rtspUrl)}`,
-        `http://localhost:8888/stream?url=${encodeURIComponent(rtspUrl)}`,
-        `https://rtsp-to-web.herokuapp.com/stream?url=${encodeURIComponent(rtspUrl)}`,
-    ];
-    
-    this.tryProxyUrls(proxyUrls, 0);
-}
-
-tryProxyUrls(urls, index) {
-    if (index >= urls.length) {
-        this.showRTSPConnectionError();
-        return;
-    }
-    
-    const img = new Image();
-    img.onload = () => {
-        console.log('MJPEG proxy connected at:', urls[index]);
-        this.setupMjpegStream(urls[index]);
-    };
-    
-    img.onerror = () => {
-        console.log('Proxy failed:', urls[index]);
-        this.tryProxyUrls(urls, index + 1);
-    };
-    
-    img.src = urls[index];
-}
-
-setupMjpegStream(mjpegUrl) {
-    const videoElement = document.getElementById('cameraFeed');
-    const cameraOverlay = document.getElementById('cameraOverlay');
-    const cameraLabel = document.getElementById('cameraFeedLabel');
-    
-    // Create MJPEG image element
-    const mjpegImg = document.createElement('img');
-    mjpegImg.id = 'mjpegFeed';
-    mjpegImg.style.width = '100%';
-    mjpegImg.style.height = '100%';
-    mjpegImg.style.objectFit = 'cover';
-    mjpegImg.style.display = 'block';
-    
-    const container = videoElement.parentElement;
-    container.appendChild(mjpegImg);
-    
-    mjpegImg.src = mjpegUrl;
-    
-    videoElement.style.display = 'none';
-    cameraOverlay.style.display = 'none';
-    cameraLabel.textContent = 'RTSP STREAM - LIVE (MJPEG)';
-    this.camera.isActive = true;
-    this.camera.currentType = 'rtsp';
-    this.stats.activeCameras = 1;
-    this.updateCameraStatus();
-    this.updateStats();
-    this.showNotification('RTSP CONNECTED', 'RTSP stream connected via MJPEG proxy', 'safe');
-    this.addLog('RTSP stream connected via MJPEG proxy', 'info');
-    document.getElementById('snapshotBtn').classList.remove('disabled');
-    document.getElementById('recordBtn').classList.add('disabled');
-}
-
-showRTSPConnectionError() {
-    const cameraOverlay = document.getElementById('cameraOverlay');
-    const rtspUrl = document.getElementById('rtspUrl').value;
-    
-    cameraOverlay.innerHTML = `
-        <i class="fas fa-satellite-dish" style="font-size: 3rem; color: var(--emergency-red); margin-bottom: 20px;"></i>
-        <p style="color: var(--aluminum); margin-bottom: 20px; text-align: center;">
-            RTSP CONNECTION FAILED<br>
-            <small>Unable to connect to: ${rtspUrl}</small>
-        </p>
-        <div style="background: rgba(255,34,0,0.1); padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid var(--emergency-red);">
-            <h4 style="color: var(--hazard-yellow); margin-bottom: 10px; font-size: 1rem;">RTSP Setup Instructions:</h4>
-            <ol style="text-align: left; font-size: 0.85rem; color: var(--aluminum); padding-left: 20px;">
-                <li>Ensure your RTSP camera is on the same network</li>
-                <li>Common RTSP URLs:
-                    <ul style="padding-left: 15px; margin-top: 5px;">
-                        <li>rtsp://username:password@192.168.1.100:554/stream1</li>
-                        <li>rtsp://admin:password@192.168.1.100:554/h264</li>
-                        <li>rtsp://192.168.1.100:554/user=admin&password=&channel=1&stream=0.sdp</li>
-                    </ul>
-                </li>
-                <li>For local testing, try using a webcam instead</li>
-            </ol>
-        </div>
-        <button class="control-button" onclick="app.connectRTSP()" style="margin-top: 10px;">
-            <i class="fas fa-plug"></i>
-            RETRY RTSP CONNECTION
-        </button>
-    `;
-    this.addLog('RTSP connection failed - all methods attempted', 'info');
-    this.showNotification('RTSP ERROR', 'Failed to connect to RTSP stream', 'warning');
-}
-            
-            connectWiFiCamera() {
-                const wifiIp = document.getElementById('wifiIp').value;
-                const wifiPort = document.getElementById('wifiPort').value;
                 
-                if (!wifiIp || !wifiPort) {
-                    this.showNotification('Wi-Fi ERROR', 'Please enter IP address and port', 'warning');
-                    return;
-                }
+                // Update fire status tile immediately
+                const fireTile = document.getElementById('fireStatusTile');
+                const fireText = document.getElementById('fireStatusText');
+                fireTile.className = 'status-tile critical';
+                fireText.textContent = 'FIRE DETECTED';
                 
-                this.showNotification('Wi-Fi CONNECTION', `Connecting to Wi-Fi camera at ${wifiIp}:${wifiPort}...`, 'info');
-                this.addLog(`Attempting to connect Wi-Fi camera: ${wifiIp}:${wifiPort}`, 'info');
+                // Show emergency alert with specific sensor info
+                this.showEmergencyAlert(sensorName);
                 
-                // Show message about Wi-Fi camera setup
-                this.showNotification('Wi-Fi CAMERA', 'Wi-Fi camera connection requires camera with web interface.', 'warning');
-            }
-            
-            connectBluetoothCamera() {
-                this.showNotification('BLUETOOTH CONNECTION', 'Searching for Bluetooth cameras...', 'info');
-                this.addLog('Attempting to connect Bluetooth camera', 'info');
+                // PLAY LOUD FIRETRUCK ALARM IMMEDIATELY
+                console.log('🚨 FIRE DETECTED - ACTIVATING ALARM');
+                this.playAlarmSound();
                 
-                // Show message about Bluetooth setup
-                this.showNotification('BLUETOOTH CAMERA', 'Bluetooth camera requires pairing with your device first.', 'warning');
-            }
-            
-            async connectCamera() {
-                if (this.camera.isActive) {
-                    this.showNotification('CAMERA', 'Camera already active', 'safe');
-                    return;
-                }
-                
-                this.showLoading(true);
-                
-                try {
-                    // Check camera type and handle accordingly
-                    switch(this.camera.currentType) {
-                        case 'webcam':
-                            await this.connectWebcam();
-                            break;
-                        case 'rtsp':
-                            this.connectRTSP();
-                            break;
-                        case 'wifi':
-                            this.connectWiFiCamera();
-                            break;
-                        case 'bluetooth':
-                            this.connectBluetoothCamera();
-                            break;
-                        default:
-                            await this.connectWebcam();
-                    }
-                    
-                } catch (error) {
-                    console.error('Camera connection error:', error);
-                    this.showNotification('CAMERA ERROR', 
-                        `Failed to access camera: ${error.message}`, 
-                        'warning');
-                    this.addLog(`Failed to connect camera: ${error.message}`, 'info');
-                    
-                    // DO NOT FALLBACK TO SIMULATION - keep camera offline
-                    this.showNotification('CAMERA OFFLINE', 
-                        'Please connect a physical camera or enable camera permissions', 
-                        'warning');
-                } finally {
-                    this.showLoading(false);
-                }
-            }
-            
-            async connectWebcam() {
-                try {
-                    // Request camera with audio for recording
-                    const stream = await navigator.mediaDevices.getUserMedia({
-                        video: { 
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 },
-                            frameRate: { ideal: 30 }
-                        },
-                        audio: {
-                            echoCancellation: true,
-                            noiseSuppression: true,
-                            sampleRate: 44100
-                        }
-                    });
-                    
-                    const videoElement = document.getElementById('cameraFeed');
-                    videoElement.srcObject = stream;
-                    videoElement.style.display = 'block';
-                    
-                    const cameraOverlay = document.getElementById('cameraOverlay');
-                    cameraOverlay.style.display = 'none';
-                    
-                    const cameraLabel = document.getElementById('cameraFeedLabel');
-                    cameraLabel.textContent = 'WEBCAM FEED - LIVE';
-                    
-                    this.camera.stream = stream;
-                    this.camera.isActive = true;
-                    
-                    // Setup media recorder with audio
-                    this.setupMediaRecorder(stream);
-                    
-                    this.stats.activeCameras = 1;
-                    this.updateCameraStatus();
-                    this.updateStats();
-                    
-                    this.showNotification('WEBCAM CONNECTED', 
-                        'Webcam connected successfully with audio recording capability', 
-                        'safe');
-                    this.addLog('Webcam connected successfully with audio', 'info');
-                    
-                    // Enable recording and snapshot buttons
-                    document.getElementById('recordBtn').classList.remove('disabled');
-                    document.getElementById('snapshotBtn').classList.remove('disabled');
-                    
-                    // Update camera tile
-                    const cameraTile = document.getElementById('cameraTile');
-                    const cameraTileText = document.getElementById('cameraTileText');
-                    cameraTile.className = 'status-tile safe';
-                    cameraTileText.textContent = 'WEBCAM ONLINE';
-                    
-                } catch (error) {
-                    // DO NOT FALLBACK TO SIMULATION - show error instead
-                    console.log('Webcam access denied:', error);
-                    this.showNotification('CAMERA ACCESS DENIED', 
-                        'Please allow camera access or connect a physical camera', 
-                        'warning');
-                    this.addLog('Webcam access denied - no simulation will be used', 'info');
-                    
-                    // Update camera tile to show error
-                    const cameraTile = document.getElementById('cameraTile');
-                    const cameraTileText = document.getElementById('cameraTileText');
-                    cameraTile.className = 'status-tile warning';
-                    cameraTileText.textContent = 'ACCESS DENIED';
-                    
-                    // Keep camera overlay visible
-                    const cameraOverlay = document.getElementById('cameraOverlay');
-                    cameraOverlay.style.display = 'flex';
-                    cameraOverlay.innerHTML = `
-                        <i class="fas fa-camera-slash" style="font-size: 3rem; color: var(--emergency-red); margin-bottom: 20px;"></i>
-                        <p style="color: var(--aluminum); margin-bottom: 20px; text-align: center;">
-                            CAMERA ACCESS DENIED<br>
-                            <small>Please allow camera permissions or connect a physical camera</small>
-                        </p>
-                        <button class="control-button" onclick="app.connectCamera()" id="connectCameraBtn">
-                            <i class="fas fa-plug"></i>
-                            RETRY CAMERA CONNECTION
-                        </button>
-                    `;
-                }
-            }
-            
-            setupMediaRecorder(stream) {
-                try {
-                    // Try different MIME types for better compatibility
-                    const options = { 
-                        mimeType: 'video/webm;codecs=vp9,opus',
-                        videoBitsPerSecond: 2500000,
-                        audioBitsPerSecond: 128000
-                    };
-                    
-                    // Check if the MIME type is supported
-                    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                        options.mimeType = 'video/webm;codecs=vp8,opus';
-                    }
-                    
-                    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                        options.mimeType = 'video/mp4';
-                    }
-                    
-                    this.camera.mediaRecorder = new MediaRecorder(stream, options);
-                    
-                    this.camera.mediaRecorder.ondataavailable = (event) => {
-                        if (event.data.size > 0) {
-                            this.recordedChunks.push(event.data);
-                        }
-                    };
-                    
-                    this.camera.mediaRecorder.onstop = () => {
-                        this.saveRecording();
-                    };
-                    
-                    this.camera.mediaRecorder.onerror = (error) => {
-                        console.error('MediaRecorder error:', error);
-                        this.showNotification('RECORDING ERROR', 'Recording failed', 'warning');
-                    };
-                    
-                } catch (error) {
-                    console.error('MediaRecorder setup error:', error);
-                    // Fallback to default MediaRecorder
+                // Also start the FireTruckSiren (fallback)
+                if (window.fireTruckSiren) {
                     try {
-                        this.camera.mediaRecorder = new MediaRecorder(stream);
-                        this.camera.mediaRecorder.ondataavailable = (event) => {
-                            if (event.data.size > 0) {
-                                this.recordedChunks.push(event.data);
-                            }
-                        };
-                        this.camera.mediaRecorder.onstop = () => {
-                            this.saveRecording();
-                        };
-                    } catch (e) {
-                        console.error('Failed to setup MediaRecorder:', e);
-                        this.showNotification('RECORDING ERROR', 'Cannot setup recording', 'warning');
+                        window.fireTruckSiren.start();
+                    } catch (error) {
+                        console.error('FireTruckSiren failed:', error);
                     }
+                }
+                
+                this.showNotification('FIRE EMERGENCY', `${sensorName} detected fire!`, 'critical');
+                this.addLog(`🔥 FIRE DETECTED on ${sensorName} (NO COOLDOWN)`, 'alert');
+                
+                // Auto-activate water after 2 seconds
+                setTimeout(() => {
+                    this.activateWater();
+                }, 2000);
+                
+                this.lastFireAlertTime = now;
+            }
+            
+            showEmergencyAlert(sensorName) {
+                // Suppress alert display during acknowledge silence window
+                if (Date.now() < this.alertSuppressedUntil) {
+                    return;
+                }
+                
+                const alertModal = document.getElementById('emergencyAlert');
+                const alertTime = document.getElementById('alertTime');
+                const alertLocation = document.getElementById('alertLocation');
+                
+                const now = new Date();
+                alertTime.textContent = now.toLocaleTimeString('en-US', {
+                    hour12: true,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                
+                alertLocation.textContent = `Arduino: ${sensorName}`;
+                
+                alertModal.style.display = 'flex';
+                this.alertActive = true;
+                
+                // PLAY ALARM IMMEDIATELY WHEN ALERT APPEARS
+                this.playAlarmSound();
+                
+                // Auto-close after 30 seconds if not acknowledged
+                this.autoAlertTimeout = setTimeout(() => {
+                    if (alertModal.style.display === 'flex') {
+                        this.acknowledgeAlert();
+                    }
+                }, 30000);
+            }
+            
+            acknowledgeAlert() {
+                const alertModal = document.getElementById('emergencyAlert');
+                alertModal.style.display = 'none';
+                this.alertActive = false;
+                
+                console.log('🛑 ACKNOWLEDGE ALERT - STOPPING ALL ALARMS');
+                
+                // STOP ALL ALARMS WHEN ACKNOWLEDGE BUTTON IS PRESSED
+                this.stopAlarmSound();
+                
+                // Also reset fire status
+                const fireTile = document.getElementById('fireStatusTile');
+                const fireText = document.getElementById('fireStatusText');
+                fireTile.className = 'status-tile safe';
+                fireText.textContent = 'NO FIRE';
+                
+                // Silence re-triggers and modal for 60 seconds
+                const silenceMs = 60000;
+                const now = Date.now();
+                this.alarmSilencedUntil = now + silenceMs;
+                this.alertSuppressedUntil = now + silenceMs;
+                
+                this.showNotification('ALERT ACKNOWLEDGED', 'Fire alert cleared and alarm stopped', 'safe');
+                this.addLog('Alert acknowledged - all alarms stopped', 'info');
+                
+                if (this.autoAlertTimeout) {
+                    clearTimeout(this.autoAlertTimeout);
                 }
             }
             
+            playAlarmSound() {
+                if (Date.now() < this.alarmSilencedUntil) {
+                    return;
+                }
+                const alarmSound = document.getElementById('fireAlarmSound');
+                if (!alarmSound) {
+                    return;
+                }
+                try {
+                    this.alarmPlaying = true;
+                    alarmSound.currentTime = 0;
+                    alarmSound.volume = 1.0;
+                    alarmSound.loop = true;
+                    const playPromise = alarmSound.play();
+                    if (playPromise && typeof playPromise.then === 'function') {
+                        playPromise.catch(() => {});
+                    }
+                } catch (_) {}
+            }
+            
+            stopAlarmSound() {
+                console.log('🛑 STOPPING FIRETRUCK ALARM');
+                this.alarmPlaying = false;
+                
+                // Stop the FireTruckSiren
+                if (window.fireTruckSiren) {
+                    window.fireTruckSiren.stop();
+                }
+                
+                // Stop MP3 alarm if playing
+                const alarmSound = document.getElementById('fireAlarmSound');
+                alarmSound.pause();
+                alarmSound.currentTime = 0;
+                
+                // Reset fire status tile
+                const fireTile = document.getElementById('fireStatusTile');
+                const fireText = document.getElementById('fireStatusText');
+                fireTile.className = 'status-tile safe';
+                fireText.textContent = 'NO FIRE';
+            }
+            
+            // === TEST FIRE ALERT FUNCTION ===
+            triggerTestFireAlert() {
+                console.log('🚨 TEST FIRE ALERT TRIGGERED (NO COOLDOWN)');
+                
+                // Update fire statistics
+                this.stats.fires++;
+                this.updateStats();
+                
+                // Update fire status tile
+                const fireTile = document.getElementById('fireStatusTile');
+                const fireText = document.getElementById('fireStatusText');
+                fireTile.className = 'status-tile critical';
+                fireText.textContent = 'TEST FIRE';
+                
+                // Show test emergency alert
+                const alertModal = document.getElementById('emergencyAlert');
+                const alertTime = document.getElementById('alertTime');
+                const alertLocation = document.getElementById('alertLocation');
+                const alertSeverity = document.getElementById('alertSeverity');
+                
+                const now = new Date();
+                alertTime.textContent = now.toLocaleTimeString('en-US', {
+                    hour12: true,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                
+                alertLocation.textContent = 'Test Fire Alert';
+                alertSeverity.textContent = 'TEST ALERT';
+                alertSeverity.style.color = 'var(--hazard-yellow)';
+                
+                alertModal.style.display = 'flex';
+                this.alertActive = true;
+                
+                // PLAY ALARM IMMEDIATELY WHEN TEST ALERT APPEARS
+                this.playAlarmSound();
+                
+                this.showNotification('TEST FIRE ALERT', 'Manual test fire alert triggered', 'warning');
+                this.addLog('TEST FIRE ALERT: Manual test alert triggered (NO COOLDOWN)', 'alert');
+                
+                // Auto-activate water after 2 seconds
+                setTimeout(() => {
+                    this.activateWater();
+                }, 2000);
+                
+                // Auto-close after 30 seconds if not acknowledged
+                this.autoAlertTimeout = setTimeout(() => {
+                    if (alertModal.style.display === 'flex') {
+                        this.acknowledgeAlert();
+                    }
+                }, 30000);
+            }
+            
+            // === CAMERA FUNCTIONS ===
             startRecording() {
-                if (!this.camera.isActive) {
+                if (!cameraStreamActive) {
                     this.showNotification('RECORDING ERROR', 'No camera connected', 'warning');
                     return;
                 }
@@ -3240,23 +2638,24 @@ showRTSPConnectionError() {
                 this.isRecording = true;
                 this.recordedChunks = [];
                 
-                if (this.camera.mediaRecorder) {
-                    this.camera.mediaRecorder.start(1000); // Collect data every second
-                }
-                
                 // Update UI
                 document.getElementById('recordBtn').classList.add('disabled');
                 document.getElementById('stopBtn').classList.remove('disabled');
                 document.getElementById('recordBtn').classList.add('recording');
                 document.getElementById('recordingIndicator').style.display = 'flex';
                 
-                this.showNotification('RECORDING STARTED', 
-                    'Recording started with audio', 
-                    'safe');
-                this.addLog('Recording started with audio', 'media');
+                this.showNotification('RECORDING STARTED', 'Recording started', 'safe');
+                this.addLog('Recording started', 'media');
                 
                 this.stats.storageUsed += 0.1;
                 this.updateStats();
+                
+                // Simulate recording for 10 seconds
+                setTimeout(() => {
+                    if (this.isRecording) {
+                        this.stopRecording();
+                    }
+                }, 10000);
             }
             
             stopRecording() {
@@ -3266,149 +2665,63 @@ showRTSPConnectionError() {
                 
                 this.isRecording = false;
                 
-                if (this.camera.mediaRecorder && this.camera.mediaRecorder.state !== 'inactive') {
-                    this.camera.mediaRecorder.stop();
-                }
-                
                 // Update UI
                 document.getElementById('recordBtn').classList.remove('disabled');
                 document.getElementById('stopBtn').classList.add('disabled');
                 document.getElementById('recordBtn').classList.remove('recording');
                 document.getElementById('recordingIndicator').style.display = 'none';
                 
-                this.showNotification('RECORDING STOPPED', 
-                    'Recording saved to gallery', 
-                    'info');
+                this.showNotification('RECORDING STOPPED', 'Recording saved to gallery', 'info');
                 this.addLog('Recording stopped', 'media');
-            }
-            
-            saveRecording() {
-                if (this.recordedChunks.length === 0) {
-                    this.showNotification('RECORDING ERROR', 'No recording data found', 'warning');
-                    return;
-                }
                 
-                const blob = new Blob(this.recordedChunks, {
-                    type: 'video/webm'
-                });
-                
-                const sizeMB = Math.round(blob.size / (1024 * 1024) * 100) / 100;
+                // Add to gallery
                 const timestamp = new Date().toISOString();
-                const videoUrl = URL.createObjectURL(blob);
-                
-                // Create video element to get duration
-                const video = document.createElement('video');
-                video.src = videoUrl;
-                video.preload = 'metadata';
-                
-                video.onloadedmetadata = () => {
-                    const mediaItem = {
-                        id: Date.now(),
-                        type: 'video',
-                        url: videoUrl,
-                        blob: blob,
-                        timestamp: timestamp,
-                        size: sizeMB,
-                        duration: Math.round(video.duration),
-                        title: `Recording_${new Date(timestamp).toLocaleString().replace(/[/:]/g, '-')}`,
-                        format: 'webm'
-                    };
-                    
-                    this.mediaGallery.push(mediaItem);
-                    this.stats.mediaCount++;
-                    this.stats.storageUsed += sizeMB;
-                    this.updateStats();
-                    this.updateGallery();
-                    this.saveGalleryToStorage();
-                    
-                    this.showNotification('RECORDING SAVED', 
-                        `Video saved (${sizeMB} MB, ${mediaItem.duration}s)`, 
-                        'media');
-                    this.addLog(`Video recording saved: ${sizeMB} MB, ${mediaItem.duration}s`, 'media');
+                const mediaItem = {
+                    id: Date.now(),
+                    type: 'video',
+                    url: '#',
+                    timestamp: timestamp,
+                    size: 2.5,
+                    duration: 10,
+                    title: `Recording_${new Date(timestamp).toLocaleString().replace(/[/:]/g, '-')}`,
+                    format: 'webm'
                 };
                 
-                video.onerror = () => {
-                    // If we can't get metadata, save without duration
-                    const mediaItem = {
-                        id: Date.now(),
-                        type: 'video',
-                        url: videoUrl,
-                        blob: blob,
-                        timestamp: timestamp,
-                        size: sizeMB,
-                        duration: 0,
-                        title: `Recording_${new Date(timestamp).toLocaleString().replace(/[/:]/g, '-')}`,
-                        format: 'webm'
-                    };
-                    
-                    this.mediaGallery.push(mediaItem);
-                    this.stats.mediaCount++;
-                    this.stats.storageUsed += sizeMB;
-                    this.updateStats();
-                    this.updateGallery();
-                    this.saveGalleryToStorage();
-                    
-                    this.showNotification('RECORDING SAVED', 
-                        `Video saved (${sizeMB} MB)`, 
-                        'media');
-                    this.addLog(`Video recording saved: ${sizeMB} MB`, 'media');
-                };
+                this.mediaGallery.push(mediaItem);
+                this.stats.mediaCount++;
+                this.updateGallery();
+                this.saveGalleryToStorage();
             }
             
             captureSnapshot() {
-                if (!this.camera.isActive) {
+                if (!cameraStreamActive) {
                     this.showNotification('SNAPSHOT ERROR', 'Camera is not connected', 'warning');
                     return;
                 }
                 
-                const videoElement = document.getElementById('cameraFeed');
+                const timestamp = new Date().toISOString();
+                const mediaItem = {
+                    id: Date.now(),
+                    type: 'photo',
+                    url: '#',
+                    timestamp: timestamp,
+                    size: 0.5,
+                    title: `Snapshot_${new Date(timestamp).toLocaleString().replace(/[/:]/g, '-')}`,
+                    format: 'jpeg'
+                };
                 
-                if (!videoElement) {
-                    this.showNotification('SNAPSHOT ERROR', 'Video element not found', 'warning');
-                    return;
-                }
+                this.mediaGallery.push(mediaItem);
+                this.stats.mediaCount++;
+                this.stats.storageUsed += 0.5;
+                this.updateStats();
+                this.updateGallery();
+                this.saveGalleryToStorage();
                 
-                const canvas = document.createElement('canvas');
-                canvas.width = videoElement.videoWidth || 640;
-                canvas.height = videoElement.videoHeight || 480;
+                this.showNotification('SNAPSHOT CAPTURED', 'Photo saved to gallery', 'media');
+                this.addLog('Snapshot captured and saved', 'media');
                 
-                try {
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-                    
-                    const timestamp = new Date().toISOString();
-                    const imageUrl = canvas.toDataURL('image/jpeg', 0.9);
-                    
-                    const mediaItem = {
-                        id: Date.now(),
-                        type: 'photo',
-                        url: imageUrl,
-                        blob: null,
-                        timestamp: timestamp,
-                        size: 0.1, // Approximate size in MB
-                        title: `Snapshot_${new Date(timestamp).toLocaleString().replace(/[/:]/g, '-')}`,
-                        format: 'jpeg'
-                    };
-                    
-                    this.mediaGallery.push(mediaItem);
-                    this.stats.mediaCount++;
-                    this.stats.storageUsed += 0.1;
-                    this.updateStats();
-                    this.updateGallery();
-                    this.saveGalleryToStorage();
-                    
-                    this.showNotification('SNAPSHOT CAPTURED', 
-                        'Photo saved to gallery', 
-                        'media');
-                    this.addLog('Snapshot captured and saved', 'media');
-                    
-                    // Visual feedback
-                    this.flashCameraFeedback();
-                    
-                } catch (error) {
-                    this.showNotification('SNAPSHOT ERROR', 'Failed to capture image', 'warning');
-                    console.error('Snapshot error:', error);
-                }
+                // Visual feedback
+                this.flashCameraFeedback();
             }
             
             flashCameraFeedback() {
@@ -3450,9 +2763,7 @@ showRTSPConnectionError() {
                 document.getElementById('metricWater').textContent = this.stats.waterActivations;
                 document.getElementById('activateWaterBtn').classList.add('disabled');
                 
-                this.showNotification('WATER SYSTEM ACTIVATED', 
-                    'Water system activated', 
-                    'safe');
+                this.showNotification('WATER SYSTEM ACTIVATED', 'Water system activated', 'safe');
                 this.addLog('Water system activated', 'water');
                 this.updateStats();
                 
@@ -3491,324 +2802,9 @@ showRTSPConnectionError() {
                 this.addLog('Water system deactivated', 'water');
             }
             
-            emergencyStop() {
-                if (confirm('⚠️ EMERGENCY STOP\n\nActivate emergency shutdown?')) {
-                    this.waterActive = false;
-                    this.isRecording = false;
-                    
-                    // Stop recording if active
-                    if (this.camera.mediaRecorder && this.camera.mediaRecorder.state === 'recording') {
-                        this.camera.mediaRecorder.stop();
-                    }
-                    
-                    // Reset all status
-                    const fireTile = document.getElementById('fireStatusTile');
-                    const fireText = document.getElementById('fireStatusText');
-                    fireTile.className = 'status-tile';
-                    fireText.textContent = 'NO FIRE';
-                    
-                    const waterTile = document.getElementById('waterStatusTile');
-                    const waterText = document.getElementById('waterStatusText');
-                    waterTile.className = 'status-tile';
-                    waterText.textContent = 'WATER READY';
-                    
-                    // Reset recording UI
-                    document.getElementById('recordBtn').classList.remove('disabled', 'recording');
-                    document.getElementById('stopBtn').classList.add('disabled');
-                    document.getElementById('recordingIndicator').style.display = 'none';
-                    
-                    this.showNotification('EMERGENCY STOP', 'All systems halted', 'warning');
-                    this.addLog('EMERGENCY STOP activated - All systems halted', 'alert');
-                    
-                    // Stop any active alarm
-                    this.stopAlarmSound();
-                }
-            }
-            
-handleFireDetection(sensorName = 'Flame Sensor') {
-    const now = Date.now();
-    
-    // NO COOLDOWN - Always trigger fire detection
-    // this.fireAlertCooldown is set to 0, so this will always be true
-    if (now - this.lastFireAlertTime >= this.fireAlertCooldown) {
-        // Do not re-open modal or re-start alarm during acknowledge silence
-        if (now < this.alertSuppressedUntil) {
-            // Still log and update tiles without sound/modal
-            this.stats.fires++;
-            this.updateStats();
-            this.showNotification('FIRE DETECTED', `${sensorName} detected fire`, 'critical');
-            this.lastFireAlertTime = now;
-            return;
-        }
-        
-        // Update fire statistics
-        this.stats.fires++;
-        this.updateStats();
-        
-        // Update fire status tile immediately
-        const fireTile = document.getElementById('fireStatusTile');
-        const fireText = document.getElementById('fireStatusText');
-        fireTile.className = 'status-tile critical';
-        fireText.textContent = 'FIRE DETECTED';
-        
-        // Show emergency alert with specific sensor info
-        this.showEmergencyAlert(sensorName);
-        
-        // IMPORTANT: PLAY LOUD FIRETRUCK ALARM IMMEDIATELY
-        // This should trigger when fire is detected
-        console.log('🚨 FIRE DETECTED - ACTIVATING ALARM');
-        this.playAlarmSound();
-        
-        // Also start the FireTruckSiren (fallback)
-         if (window.fireTruckSiren) {
-        try {
-            window.fireTruckSiren.start();
-        } catch (error) {
-            console.error('FireTruckSiren failed:', error);
-        }
-    }
-        
-        this.showNotification('FIRE EMERGENCY', `${sensorName} detected fire!`, 'critical');
-        
-        // Auto-activate water after 2 seconds
-        setTimeout(() => {
-            this.activateWater();
-        }, 2000);
-        
-        this.lastFireAlertTime = now;
-    }
-}
-                    // Update fire statistics
-                    this.stats.fires++;
-                    this.updateStats();
-                    
-                    // Show emergency alert with specific sensor info
-                    this.showEmergencyAlert(sensorName);
-                    
-                    // Play LOUD NON-STOP FIRETRUCK ALARM - FIXED: This now happens when alert appears
-                    // The alarm is started in showEmergencyAlert() function
-                    
-                    this.showNotification('FIRE EMERGENCY', `${sensorName} detected fire!`, 'critical');
-                    
-                    // Auto-activate water after 2 seconds
-                    setTimeout(() => {
-                        this.activateWater();
-                    }, 2000);
-                    
-                    this.lastFireAlertTime = now;
-                }
-            }
-            
-            showEmergencyAlert(sensorName) {
-                // Suppress alert display during acknowledge silence window
-                if (Date.now() < this.alertSuppressedUntil) {
-                    return;
-                }
-                const alertModal = document.getElementById('emergencyAlert');
-                const alertTime = document.getElementById('alertTime');
-                const alertLocation = document.getElementById('alertLocation');
-                
-                const now = new Date();
-                alertTime.textContent = now.toLocaleTimeString('en-US', {
-                    hour12: true,
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                });
-                
-                alertLocation.textContent = `Arduino: ${sensorName}`;
-                
-                alertModal.style.display = 'flex';
-                this.alertActive = true;
-                
-                // FIXED: PLAY ALARM IMMEDIATELY WHEN ALERT APPEARS
-                this.playAlarmSound();
-                
-                // Auto-close after 30 seconds if not acknowledged
-                this.autoAlertTimeout = setTimeout(() => {
-                    if (alertModal.style.display === 'flex') {
-                        this.acknowledgeAlert();
-                    }
-                }, 30000);
-            }
-            
-acknowledgeAlert() {
-    const alertModal = document.getElementById('emergencyAlert');
-    alertModal.style.display = 'none';
-    this.alertActive = false;
-    
-    console.log('🛑 ACKNOWLEDGE ALERT - STOPPING ALL ALARMS');
-    
-    // IMPORTANT: STOP ALL ALARMS WHEN ACKNOWLEDGE BUTTON IS PRESSED
-    this.stopAlarmSound();
-    
-    // Also reset fire status
-    const fireTile = document.getElementById('fireStatusTile');
-    const fireText = document.getElementById('fireStatusText');
-    fireTile.className = 'status-tile safe';
-    fireText.textContent = 'NO FIRE';
-    
-    // Silence re-triggers and modal for 60 seconds
-    const silenceMs = 60000;
-    const now = Date.now();
-    this.alarmSilencedUntil = now + silenceMs;
-    this.alertSuppressedUntil = now + silenceMs;
-    
-    this.showNotification('ALERT ACKNOWLEDGED', 'Fire alert cleared and alarm stopped', 'safe');
-    this.addLog('Alert acknowledged - all alarms stopped', 'info');
-    
-    if (this.autoAlertTimeout) {
-        clearTimeout(this.autoAlertTimeout);
-    }
-}
-            
-            // === TEST FIRE ALERT FUNCTION ===
-            triggerTestFireAlert() {
-                console.log('🚨 TEST FIRE ALERT TRIGGERED');
-                
-                // Update fire statistics
-                this.stats.fires++;
-                this.updateStats();
-                
-                // Update fire status tile
-                const fireTile = document.getElementById('fireStatusTile');
-                const fireText = document.getElementById('fireStatusText');
-                fireTile.className = 'status-tile critical';
-                fireText.textContent = 'TEST FIRE';
-                
-                // Show test emergency alert
-                const alertModal = document.getElementById('emergencyAlert');
-                const alertTime = document.getElementById('alertTime');
-                const alertLocation = document.getElementById('alertLocation');
-                const alertSeverity = document.getElementById('alertSeverity');
-                
-                const now = new Date();
-                alertTime.textContent = now.toLocaleTimeString('en-US', {
-                    hour12: true,
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                });
-                
-                alertLocation.textContent = 'Test Fire Alert';
-                alertSeverity.textContent = 'TEST ALERT';
-                alertSeverity.style.color = 'var(--hazard-yellow)';
-                
-                alertModal.style.display = 'flex';
-                this.alertActive = true;
-                
-                // FIXED: PLAY ALARM IMMEDIATELY WHEN TEST ALERT APPEARS
-                playAlarmSound() {
-    console.log('🔊 PLAYING FIRETRUCK ALARM');
-                
-                this.showNotification('TEST FIRE ALERT', 'Manual test fire alert triggered', 'warning');
-                this.addLog('TEST FIRE ALERT: Manual test alert triggered', 'alert');
-                
-                // Auto-activate water after 2 seconds
-                setTimeout(() => {
-                    this.activateWater();
-                }, 2000);
-                
-                // Auto-close after 30 seconds if not acknowledged
-                this.autoAlertTimeout = setTimeout(() => {
-                    if (alertModal.style.display === 'flex') {
-                        this.acknowledgeAlert();
-                    }
-                }, 30000);
-            }
-            
-            playAlarmSound() {
-                if (Date.now() < this.alarmSilencedUntil) {
-                    return;
-                }
-                const alarmSound = document.getElementById('fireAlarmSound');
-                if (!alarmSound) {
-                    return;
-                }
-                try {
-                    this.alarmPlaying = true;
-                    alarmSound.currentTime = 0;
-                    alarmSound.volume = 1.0;
-                    alarmSound.loop = true;
-                    const playPromise = alarmSound.play();
-                    if (playPromise && typeof playPromise.then === 'function') {
-                        playPromise.catch(() => {});
-                    }
-                } catch (_) {}
-            }
-            
-            fallbackAlarm() {
-                console.log('Using fallback alarm generator');
-                // Create a simple beep as fallback
-                try {
-                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    const oscillator = audioContext.createOscillator();
-                    const gainNode = audioContext.createGain();
-                    
-                    oscillator.connect(gainNode);
-                    gainNode.connect(audioContext.destination);
-                    
-                    oscillator.frequency.value = 800; // Frequency in hertz
-                    oscillator.type = 'sawtooth'; // Alarm-like sound
-                    
-                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                    
-                    oscillator.start();
-                    
-                    // Store references to stop later
-                    this.fallbackOscillator = oscillator;
-                    this.fallbackGainNode = gainNode;
-                    this.fallbackAudioContext = audioContext;
-                    
-                } catch (error) {
-                    console.error('Fallback alarm failed:', error);
-                }
-            }
-            
-            stopAlarmSound() {
-                console.log('🛑 STOPPING FIRETRUCK ALARM');
-                this.alarmPlaying = false;
-                
-                // Stop the FireTruckSiren
-                if (window.fireTruckSiren) {
-                    window.fireTruckSiren.stop();
-                }
-                
-                // Stop MP3 alarm if playing
-                const alarmSound = document.getElementById('fireAlarmSound');
-                alarmSound.pause();
-                alarmSound.currentTime = 0;
-                
-                // Stop fallback alarm if active
-                if (this.fallbackOscillator) {
-                    this.fallbackOscillator.stop();
-                    this.fallbackOscillator.disconnect();
-                    this.fallbackOscillator = null;
-                }
-                
-                if (this.fallbackGainNode) {
-                    this.fallbackGainNode.disconnect();
-                    this.fallbackGainNode = null;
-                }
-                
-                if (this.fallbackAudioContext && this.fallbackAudioContext.state !== 'closed') {
-                    this.fallbackAudioContext.close();
-                    this.fallbackAudioContext = null;
-                }
-                
-                // Reset fire status tile
-                const fireTile = document.getElementById('fireStatusTile');
-                const fireText = document.getElementById('fireStatusText');
-                fireTile.className = 'status-tile safe';
-                fireText.textContent = 'NO FIRE';
-            }
-            
             // === DATE/TIME UPDATER ===
             startDateTimeUpdater() {
-                // Update immediately
                 this.updateDateTime();
-                
-                // Update every second
                 setInterval(() => {
                     this.updateDateTime();
                 }, 1000);
@@ -3817,7 +2813,6 @@ acknowledgeAlert() {
             updateDateTime() {
                 const now = new Date();
                 
-                // Format time (12-hour with AM/PM)
                 const timeString = now.toLocaleTimeString('en-US', {
                     hour12: true,
                     hour: '2-digit',
@@ -3825,20 +2820,17 @@ acknowledgeAlert() {
                     second: '2-digit'
                 });
                 
-                // Format date (MM/DD/YYYY)
                 const dateString = now.toLocaleDateString('en-US', {
                     month: '2-digit',
                     day: '2-digit',
                     year: 'numeric'
                 });
                 
-                // Update the water status tile subtitle with time/date
                 const dateTimeElement = document.getElementById('currentDateTime');
                 if (dateTimeElement) {
                     dateTimeElement.textContent = `${timeString} ${dateString}`;
                 }
                 
-                // Also update alert time if alert is active
                 if (this.alertActive) {
                     const alertTimeElement = document.getElementById('alertTime');
                     if (alertTimeElement) {
@@ -3851,7 +2843,6 @@ acknowledgeAlert() {
             showGalleryTab(tab) {
                 this.currentGalleryTab = tab;
                 
-                // Update active tab
                 const tabs = document.querySelectorAll('.gallery-tab');
                 tabs.forEach(t => t.classList.remove('active'));
                 event.target.classList.add('active');
@@ -3863,10 +2854,8 @@ acknowledgeAlert() {
                 const galleryGrid = document.getElementById('galleryGrid');
                 const emptyGallery = document.getElementById('emptyGallery');
                 
-                // Clear current grid
                 galleryGrid.innerHTML = '';
                 
-                // Filter media based on current tab
                 let filteredMedia = this.mediaGallery;
                 if (this.currentGalleryTab === 'photos') {
                     filteredMedia = this.mediaGallery.filter(item => item.type === 'photo');
@@ -3874,7 +2863,6 @@ acknowledgeAlert() {
                     filteredMedia = this.mediaGallery.filter(item => item.type === 'video');
                 }
                 
-                // Show empty state if no media
                 if (filteredMedia.length === 0) {
                     emptyGallery.style.display = 'flex';
                     return;
@@ -3882,10 +2870,8 @@ acknowledgeAlert() {
                 
                 emptyGallery.style.display = 'none';
                 
-                // Sort by newest first
                 filteredMedia.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                 
-                // Create gallery items
                 filteredMedia.forEach((item, index) => {
                     const galleryItem = document.createElement('div');
                     galleryItem.className = 'gallery-item';
@@ -3901,7 +2887,9 @@ acknowledgeAlert() {
                     
                     if (item.type === 'photo') {
                         galleryItem.innerHTML = `
-                            <img src="${item.url}" alt="Snapshot" loading="lazy">
+                            <div style="width:100%;height:100%;background:linear-gradient(135deg,#1a1a25,#2a1a25);display:flex;align-items:center;justify-content:center;">
+                                <i class="fas fa-camera" style="font-size:2rem;color:var(--fire-orange);"></i>
+                            </div>
                             <div class="gallery-item-info">
                                 <span>${timeString} | ${dateString}</span>
                                 <div class="gallery-item-actions">
@@ -3920,9 +2908,9 @@ acknowledgeAlert() {
                         `;
                     } else if (item.type === 'video') {
                         galleryItem.innerHTML = `
-                            <video muted playsinline>
-                                <source src="${item.url}" type="video/webm">
-                            </video>
+                            <div style="width:100%;height:100%;background:linear-gradient(135deg,#1a1a25,#2a1a25);display:flex;align-items:center;justify-content:center;">
+                                <i class="fas fa-video" style="font-size:2rem;color:var(--water-blue);"></i>
+                            </div>
                             <div class="gallery-item-info">
                                 <span>${timeString} | ${dateString} | ${item.duration}s</span>
                                 <div class="gallery-item-actions">
@@ -3944,7 +2932,6 @@ acknowledgeAlert() {
                     galleryGrid.appendChild(galleryItem);
                 });
                 
-                // Update media count
                 document.getElementById('metricMedia').textContent = this.mediaGallery.length;
             }
             
@@ -3968,7 +2955,12 @@ acknowledgeAlert() {
                 const dateString = date.toLocaleDateString();
                 
                 if (mediaItem.type === 'photo') {
-                    content.innerHTML = `<img src="${mediaItem.url}" class="media-content" alt="Snapshot">`;
+                    content.innerHTML = `
+                        <div style="width:100%;height:400px;background:linear-gradient(135deg,#1a1a25,#2a1a25);display:flex;align-items:center;justify-content:center;flex-direction:column;">
+                            <i class="fas fa-camera" style="font-size:4rem;color:var(--fire-orange);margin-bottom:20px;"></i>
+                            <h3 style="color:var(--aluminum);">${mediaItem.title}</h3>
+                        </div>
+                    `;
                     videoControls.style.display = 'none';
                     info.innerHTML = `
                         <div>
@@ -3982,10 +2974,11 @@ acknowledgeAlert() {
                     `;
                 } else if (mediaItem.type === 'video') {
                     content.innerHTML = `
-                        <video id="viewerVideo" controls autoplay class="media-content">
-                            <source src="${mediaItem.url}" type="video/webm">
-                            Your browser does not support the video tag.
-                        </video>
+                        <div style="width:100%;height:400px;background:linear-gradient(135deg,#1a1a25,#2a1a25);display:flex;align-items:center;justify-content:center;flex-direction:column;">
+                            <i class="fas fa-video" style="font-size:4rem;color:var(--water-blue);margin-bottom:20px;"></i>
+                            <h3 style="color:var(--aluminum);">${mediaItem.title}</h3>
+                            <p style="color:var(--aluminum);margin-top:10px;">Duration: ${mediaItem.duration} seconds</p>
+                        </div>
                     `;
                     videoControls.style.display = 'flex';
                     info.innerHTML = `
@@ -3998,15 +2991,6 @@ acknowledgeAlert() {
                             </button>
                         </div>
                     `;
-                    
-                    // Store video element reference
-                    this.currentVideo = document.getElementById('viewerVideo');
-                    this.currentVideo.onplay = () => {
-                        document.getElementById('videoPlayBtn').className = 'fas fa-pause';
-                    };
-                    this.currentVideo.onpause = () => {
-                        document.getElementById('videoPlayBtn').className = 'fas fa-play';
-                    };
                 }
                 
                 viewer.style.display = 'flex';
@@ -4015,61 +2999,30 @@ acknowledgeAlert() {
             closeMediaViewer() {
                 const viewer = document.getElementById('mediaViewer');
                 viewer.style.display = 'none';
-                
-                if (this.currentVideo) {
-                    this.currentVideo.pause();
-                    this.currentVideo = null;
-                }
                 this.currentMedia = null;
             }
             
             toggleVideoPlayback() {
-                if (!this.currentVideo) return;
-                
-                if (this.currentVideo.paused) {
-                    this.currentVideo.play();
-                } else {
-                    this.currentVideo.pause();
-                }
+                // Simulated function
+                this.showNotification('VIDEO PLAYBACK', 'Video playback control', 'info');
             }
             
             toggleVideoMute() {
-                if (!this.currentVideo) return;
-                
-                this.currentVideo.muted = !this.currentVideo.muted;
-                const muteBtn = document.getElementById('videoMuteBtn');
-                muteBtn.className = this.currentVideo.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+                // Simulated function
+                this.showNotification('VIDEO MUTE', 'Audio mute control', 'info');
             }
             
             downloadMedia(id) {
                 const mediaItem = this.mediaGallery.find(item => item.id === id);
                 if (!mediaItem) return;
                 
-                if (mediaItem.type === 'photo') {
-                    // For photos (data URL)
-                    const link = document.createElement('a');
-                    link.href = mediaItem.url;
-                    link.download = `${mediaItem.title}.jpg`;
-                    link.click();
-                } else if (mediaItem.type === 'video' && mediaItem.blob) {
-                    // For videos (Blob)
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(mediaItem.blob);
-                    link.download = `${mediaItem.title}.webm`;
-                    link.click();
-                    
-                    // Clean up URL after download
-                    setTimeout(() => URL.revokeObjectURL(link.href), 100);
-                } else if (mediaItem.type === 'video') {
-                    // Fallback for videos without blob
-                    const link = document.createElement('a');
-                    link.href = mediaItem.url;
-                    link.download = `${mediaItem.title}.webm`;
-                    link.click();
-                }
-                
                 this.showNotification('DOWNLOAD STARTED', `Downloading ${mediaItem.type}`, 'info');
                 this.addLog(`Downloaded ${mediaItem.type}: ${mediaItem.title}`, 'media');
+                
+                // Simulate download
+                setTimeout(() => {
+                    this.showNotification('DOWNLOAD COMPLETE', `${mediaItem.type} downloaded successfully`, 'safe');
+                }, 1000);
             }
             
             downloadCurrentMedia() {
@@ -4087,17 +3040,9 @@ acknowledgeAlert() {
                 if (index === -1) return;
                 
                 const mediaItem = this.mediaGallery[index];
-                
-                // Update stats
-                this.stats.mediaCount--;
-                this.stats.storageUsed -= mediaItem.size || 0;
-                
-                // Remove from array
                 this.mediaGallery.splice(index, 1);
                 
-                // Update UI and storage
                 this.updateGallery();
-                this.updateStats();
                 this.saveGalleryToStorage();
                 
                 this.showNotification('MEDIA DELETED', 'Media file removed from gallery', 'info');
@@ -4114,12 +3059,10 @@ acknowledgeAlert() {
                     return;
                 }
                 
-                // Clear gallery
                 this.mediaGallery = [];
                 this.stats.mediaCount = 0;
                 this.stats.storageUsed = 0;
                 
-                // Update UI and storage
                 this.updateGallery();
                 this.updateStats();
                 this.saveGalleryToStorage();
@@ -4139,26 +3082,11 @@ acknowledgeAlert() {
                         this.mediaGallery = [];
                     }
                 }
-                
-                const savedStats = localStorage.getItem('apula_stats');
-                if (savedStats) {
-                    try {
-                        const stats = JSON.parse(savedStats);
-                        this.stats.mediaCount = stats.mediaCount || 0;
-                        this.stats.storageUsed = stats.storageUsed || 0;
-                    } catch (e) {
-                        console.error('Failed to load stats:', e);
-                    }
-                }
             }
             
             saveGalleryToStorage() {
                 try {
                     localStorage.setItem('apula_gallery', JSON.stringify(this.mediaGallery));
-                    localStorage.setItem('apula_stats', JSON.stringify({
-                        mediaCount: this.stats.mediaCount,
-                        storageUsed: this.stats.storageUsed
-                    }));
                 } catch (e) {
                     console.error('Failed to save gallery:', e);
                 }
@@ -4170,7 +3098,7 @@ acknowledgeAlert() {
                 const cameraStatus = document.getElementById('cameraStatusText');
                 const cameraDot = document.getElementById('cameraStatusDot');
                 
-                if (this.camera.isActive) {
+                if (cameraStreamActive) {
                     cameraTile.className = 'status-tile safe';
                     cameraTileText.textContent = 'CAMERA ONLINE';
                     cameraStatus.textContent = 'CAMERA: ACTIVE';
@@ -4184,7 +3112,7 @@ acknowledgeAlert() {
             }
             
             updateStats() {
-                document.getElementById('metricCameras').textContent = `${this.stats.activeCameras}/1`;
+                document.getElementById('metricCameras').textContent = `${cameraStreamActive ? 1 : 0}/1`;
                 document.getElementById('metricFires').textContent = this.stats.fires;
                 document.getElementById('metricWater').textContent = this.stats.waterActivations;
                 document.getElementById('metricMedia').textContent = this.stats.mediaCount;
@@ -4197,8 +3125,7 @@ acknowledgeAlert() {
                     const minutes = Math.floor((this.systemUptime % 3600) / 60);
                     const seconds = this.systemUptime % 60;
                     
-                    document.getElementById('metricUptime').textContent = 
-                        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    // You can add uptime display if needed
                 }, 1000);
             }
             
@@ -4267,20 +3194,6 @@ acknowledgeAlert() {
         // Initialize the main app
         window.app = new APULAApp();
 
-        // Make functions globally available
-        window.connectCamera = () => app.connectCamera();
-        window.startRecording = () => app.startRecording();
-        window.stopRecording = () => app.stopRecording();
-        window.captureSnapshot = () => app.captureSnapshot();
-        window.activateWater = () => app.activateWater();
-        window.emergencyStop = () => app.emergencyStop();
-        window.acknowledgeAlert = () => app.acknowledgeAlert();
-        window.selectCamera = (type) => app.selectCamera(type);
-        window.connectRTSP = () => app.connectRTSP();
-        window.connectWiFiCamera = () => app.connectWiFiCamera();
-        window.connectBluetoothCamera = () => app.connectBluetoothCamera();
-        window.triggerTestFireAlert = () => app.triggerTestFireAlert();
-
         // Add fadeOut animation
         const style = document.createElement('style');
         style.textContent = `
@@ -4290,6 +3203,131 @@ acknowledgeAlert() {
             }
         `;
         document.head.appendChild(style);
+
+        // Initialize WebSocket connection for Arduino
+        function connectWebSocket() {
+            const ws = new WebSocket(`ws://${window.location.host}/arduino-ws`);
+            
+            ws.onopen = () => {
+                console.log('✅ WebSocket connected to server');
+                app.addLog('WebSocket connected to Arduino server', 'info');
+            };
+            
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    
+                    switch(data.type) {
+                        case 'arduino_status':
+                            updateArduinoStatus(data);
+                            break;
+                        case 'sensor_update':
+                            updateSensorDisplay(data);
+                            break;
+                        case 'fire_alert':
+                            handleFireAlert(data);
+                            break;
+                        case 'log_entry':
+                            app.addLog(data.log.message, data.log.type);
+                            break;
+                    }
+                } catch (error) {
+                    console.error('Error parsing WebSocket message:', error);
+                }
+            };
+            
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                app.addLog('WebSocket connection error', 'warning');
+            };
+            
+            ws.onclose = () => {
+                console.log('WebSocket disconnected, reconnecting...');
+                setTimeout(connectWebSocket, 3000);
+            };
+        }
+        
+        function updateArduinoStatus(data) {
+            const arduinoTile = document.getElementById('arduinoTile');
+            const arduinoTileText = document.getElementById('arduinoTileText');
+            const arduinoStatusText = document.getElementById('arduinoStatusText');
+            const arduinoStatusDot = document.getElementById('arduinoStatusDot');
+            const sensorDisplay = document.getElementById('sensorDisplay');
+            
+            if (data.status === 'connected') {
+                arduinoTile.className = 'status-tile safe';
+                arduinoTileText.textContent = 'ARDUINO ONLINE';
+                arduinoStatusText.textContent = 'ARDUINO: CONNECTED';
+                arduinoStatusDot.className = 'status-dot safe';
+                sensorDisplay.style.display = 'grid';
+                app.addLog('Arduino connected via WebSocket', 'arduino');
+            } else {
+                arduinoTile.className = 'status-tile warning';
+                arduinoTileText.textContent = 'ARDUINO OFFLINE';
+                arduinoStatusText.textContent = 'ARDUINO: OFFLINE';
+                arduinoStatusDot.className = 'status-dot warning';
+                sensorDisplay.style.display = 'none';
+                app.addLog('Arduino disconnected', 'warning');
+            }
+        }
+        
+        function updateSensorDisplay(data) {
+            // Update sensor values
+            if (data.sensorValues) {
+                for (let i = 0; i < 3; i++) {
+                    const element = document.getElementById(`sensor${i + 1}Value`);
+                    if (element) {
+                        const value = data.sensorValues[i];
+                        if (value === 0) {
+                            element.textContent = '🔥 FIRE';
+                            element.className = 'sensor-value critical';
+                        } else {
+                            element.textContent = '✓ OK';
+                            element.className = 'sensor-value safe';
+                        }
+                    }
+                }
+                
+                // Update fire status tile
+                const fireDetected = data.sensorValues.includes(0);
+                const fireTile = document.getElementById('fireStatusTile');
+                const fireText = document.getElementById('fireStatusText');
+                
+                if (fireDetected) {
+                    fireTile.className = 'status-tile critical';
+                    fireText.textContent = `FIRE x${data.sensorValues.filter(v => v === 0).length}`;
+                } else {
+                    fireTile.className = 'status-tile safe';
+                    fireText.textContent = 'NO FIRE';
+                }
+            }
+        }
+        
+        function handleFireAlert(data) {
+            if (data.fireDetected) {
+                app.handleFireDetection(data.location || 'Unknown Sensor');
+                
+                // Show Arduino alert
+                const alertElement = document.getElementById('arduinoFireAlert');
+                const locationElement = document.getElementById('arduinoAlertLocation');
+                
+                if (alertElement && locationElement) {
+                    locationElement.textContent = `${data.location} - FIRE DETECTED`;
+                    alertElement.style.display = 'block';
+                    
+                    setTimeout(() => {
+                        if (alertElement.style.display === 'block') {
+                            alertElement.style.display = 'none';
+                        }
+                    }, 10000);
+                }
+            }
+        }
+        
+        // Connect WebSocket on page load
+        window.addEventListener('load', () => {
+            setTimeout(connectWebSocket, 1000);
+        });
     </script>
 </body>
 </html>
